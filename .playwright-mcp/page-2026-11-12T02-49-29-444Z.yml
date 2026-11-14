@@ -1,0 +1,110 @@
+- generic [active] [ref=f21e1]:
+  - link "Skip to content":
+    - /url: "#geist-skip-nav"
+  - main [ref=f21e3]:
+    - generic [ref=f21e4]:
+      - generic [ref=f21e5]:
+        - generic [ref=f21e6]:
+          - generic [ref=f21e7]:
+            - generic [ref=f21e10]:
+              - link "Rodolfo Hobby" [ref=f21e11] [cursor=pointer]:
+                - /url: /rodolfo-0189
+                - generic [ref=f21e14]:
+                  - generic [ref=f21e15]: Rodolfo
+                  - generic [ref=f21e16]: Hobby
+              - button [ref=f21e18] [cursor=pointer]
+            - button "Find F" [ref=f21e23]:
+              - generic [ref=f21e25]:
+                - generic [ref=f21e29]: Find
+                - generic [ref=f21e30]: F
+          - navigation [ref=f21e34]:
+            - generic [ref=f21e38]:
+              - link "Projects" [ref=f21e39] [cursor=pointer]:
+                - /url: /rodolfo-0189
+              - link "Deployments" [ref=f21e45] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/deployments
+              - link "CI" [ref=f21e51] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/ci
+              - link "Logs" [ref=f21e57] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/logs
+              - link "Traces" [ref=f21e66] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/traces
+              - link "Analytics" [ref=f21e75] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/analytics
+              - link "Speed Insights" [ref=f21e81] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/speed-insights
+              - link "Observability" [ref=f21e87] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/observability
+              - link "Firewall" [ref=f21e96] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/firewall
+              - link "CDN" [ref=f21e105] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/cdn
+              - separator [ref=f21e111]
+              - link "Environment Variables" [ref=f21e112] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/settings/environment-variables
+              - link "Domains" [ref=f21e118] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/domains
+              - link "Connect" [ref=f21e124] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/connect
+              - link "Integrations" [ref=f21e130] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/integrations
+              - link "Storage" [ref=f21e136] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/stores
+              - link "Flags" [ref=f21e142] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/experimentation/collections
+              - link "Agent" [ref=f21e148] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/agent
+              - link "Vulnerabilities" [ref=f21e158] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/security/vulnerabilities
+              - link "AI Gateway" [ref=f21e164] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/ai-gateway
+              - link "Sandboxes" [ref=f21e173] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/sandboxes
+              - link "Workflows" [ref=f21e182] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/workflows
+              - link "Images" [ref=f21e188] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/images
+              - link "Daemons" [ref=f21e194] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/daemons
+              - separator [ref=f21e203]
+              - link "Usage" [ref=f21e204] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/usage
+              - link "Support" [ref=f21e210] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/support
+              - link "Settings" [ref=f21e216] [cursor=pointer]:
+                - /url: /rodolfo-0189/~/settings
+        - button [ref=f21e238] [cursor=pointer]
+      - generic [ref=f21e242]:
+        - generic [ref=f21e243]:
+          - button "All projects" [ref=f21e247] [cursor=pointer]
+          - navigation "Breadcrumb" [ref=f21e252]:
+            - generic [ref=f21e253]: Team Overview
+          - button "Create New" [ref=f21e258] [cursor=pointer]
+        - generic [ref=f21e268]:
+          - generic [ref=f21e270]:
+            - generic [ref=f21e272]:
+              - searchbox "Search" [ref=f21e273]
+              - generic [ref=f21e279]:
+                - generic [ref=f21e280]: Press slash to focus search
+                - generic [ref=f21e282]: /
+            - generic [ref=f21e285]:
+              - button "Onboard Your Agent" [ref=f21e286] [cursor=pointer]:
+                - generic [ref=f21e296]:
+                  - generic [ref=f21e297]: Onboard Your Agent
+                  - generic [aria-hidden]: Paste to Your Agent
+              - button "Dismiss agent onboarding prompt" [ref=f21e307] [cursor=pointer]
+          - generic [ref=f21e311]:
+            - generic [ref=f21e314]:
+              - list [ref=f21e325]:
+                - listitem [ref=f21e326]
+                - listitem [ref=f21e331]
+              - list [ref=f21e434]:
+                - listitem [ref=f21e435]
+                - listitem [ref=f21e441]
+            - generic [ref=f21e450]:
+              - generic [ref=f21e451]: Projects
+              - generic [ref=f21e453]:
+                - progressbar [ref=f21e460]
+                - progressbar [ref=f21e473]
+                - progressbar [ref=f21e486]
+  - alert [ref=f21e495]

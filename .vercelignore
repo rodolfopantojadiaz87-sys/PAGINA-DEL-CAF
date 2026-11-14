@@ -1,0 +1,7 @@
+.env*
+.git
+.playwright-mcp
+dist
+node_modules
+supabase/.temp
+*.local

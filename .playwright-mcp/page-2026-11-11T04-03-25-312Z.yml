@@ -1,0 +1,176 @@
+- generic [ref=f52e1]:
+  - generic [ref=f52e4]:
+    - link "Skip to content" [ref=f52e6] [cursor=pointer]:
+      - /url: "#main"
+    - banner [ref=f52e9]:
+      - generic [ref=f52e10]:
+        - generic [ref=f52e11]:
+          - link "Supabase Back to organization home" [ref=f52e12] [cursor=pointer]:
+            - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+            - img "Supabase" [ref=f52e13]
+            - generic [ref=f52e14]: Back to organization home
+          - generic [ref=f52e15]:
+            - generic [ref=f52e166]:
+              - link "rodolfopantojadiaz87-sys's Org Free" [ref=f52e167] [cursor=pointer]:
+                - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+                - generic [ref=f52e178]: rodolfopantojadiaz87-sys's Org
+                - generic [ref=f52e179]: Free
+              - button "Show organizations" [ref=f52e180] [cursor=pointer]
+            - generic [ref=f52e16]:
+              - generic [ref=f52e185]:
+                - link "CRAF (Centro de Registro de Ayuda a la Familia)" [ref=f52e186] [cursor=pointer]:
+                  - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                - button "Show organization projects" [ref=f52e191] [cursor=pointer]
+              - generic [ref=f52e199]:
+                - link "main Production" [ref=f52e200] [cursor=pointer]:
+                  - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                  - generic "main" [ref=f52e201]
+                  - generic [ref=f52e202]: Production
+                - button "Show project branches" [ref=f52e203] [cursor=pointer]
+          - button "Connect" [ref=f52e208] [cursor=pointer]
+        - generic [ref=f52e27]:
+          - button "Feedback" [ref=f52e28] [cursor=pointer]
+          - generic [ref=f52e30]:
+            - button [ref=f52e31] [cursor=pointer]:
+              - paragraph [ref=f52e36]: Search...
+              - generic [ref=f52e38]: Ctrl K
+            - button "Help" [ref=f52e39] [cursor=pointer]
+            - button "Advisor Center" [ref=f52e46] [cursor=pointer]
+            - button "SQL Editor" [ref=f52e51] [cursor=pointer]
+            - button "AI Assistant" [ref=f52e56] [cursor=pointer]
+          - button [ref=f52e213] [cursor=pointer]:
+            - img "rodolfopantojadiaz87-sys" [ref=f52e214]
+    - generic [ref=f52e69]:
+      - generic [ref=f52e73]:
+        - navigation [ref=f52e75]:
+          - list [ref=f52e77]:
+            - listitem [ref=f52e78]:
+              - link "Project Overview" [ref=f52e79] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+            - listitem [ref=f52e82]:
+              - link "Table Editor" [ref=f52e215] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/editor
+            - listitem [ref=f52e83]:
+              - link "SQL Editor" [ref=f52e218] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/sql
+          - list [ref=f52e85]:
+            - listitem [ref=f52e86]:
+              - link "Database" [ref=f52e221] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/database/schemas
+            - listitem [ref=f52e87]:
+              - link "Authentication" [ref=f52e226] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/users
+            - listitem [ref=f52e88]:
+              - link "Storage" [ref=f52e229] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/storage/files
+            - listitem [ref=f52e89]:
+              - link "Edge Functions" [ref=f52e90] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/functions
+            - listitem [ref=f52e96]:
+              - link "Compute New" [ref=f52e232] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/compute
+                - generic [ref=f52e235]: Compute
+                - generic [ref=f52e236]: New
+            - listitem [ref=f52e237]:
+              - link "Realtime" [ref=f52e238] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/realtime/inspector
+          - list [ref=f52e98]:
+            - listitem [ref=f52e99]:
+              - link "Advisors" [ref=f52e241] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/advisors/health
+            - listitem [ref=f52e100]:
+              - link "Observability" [ref=f52e245] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/observability
+            - listitem [ref=f52e101]:
+              - link "Logs" [ref=f52e102] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/logs
+            - listitem [ref=f52e104]:
+              - link "Integrations" [ref=f52e254] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/integrations
+          - list [ref=f52e106]:
+            - listitem [ref=f52e107]:
+              - link "Project Settings" [ref=f52e108] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/settings/general
+        - button "Sidebar control" [ref=f52e114] [cursor=pointer]
+      - main [ref=f52e121]:
+        - generic [ref=f52e123]:
+          - generic [ref=f52e258]:
+            - heading "SQL Editor" [level=4] [ref=f52e260]
+            - generic [ref=f52e262]:
+              - generic [ref=f52e263]:
+                - generic [ref=f52e264]:
+                  - generic [ref=f52e266]:
+                    - generic [ref=f52e267]: Search queries
+                    - textbox "Search queries..." [ref=f52e268]
+                    - button [ref=f52e269]
+                  - button "Create a new query" [ref=f52e276] [cursor=pointer]
+                - button "Shared" [ref=f52e281]
+                - button "Favorites" [ref=f52e287]
+                - generic [ref=f52e292]:
+                  - button "PRIVATE" [expanded] [ref=f52e293]
+                  - generic [ref=f52e299]:
+                    - paragraph [ref=f52e300]: No private queries created yet
+                    - paragraph [ref=f52e301]: Queries will be automatically saved once you start writing in the editor
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic "dummy_query_1"
+                        - generic:
+                          - generic "dummy_query_2"
+                        - generic:
+                          - generic "dummy_query_3"
+                        - generic:
+                          - generic "dummy_query_4"
+                - button "Logs" [ref=f52e304]
+                - generic [ref=f52e309]:
+                  - button "Reference" [expanded] [ref=f52e310]
+                  - generic [ref=f52e314]:
+                    - link "templates" [ref=f52e315] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/sql/templates
+                    - link "examples" [ref=f52e318] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/sql/examples
+              - link "View running queries" [ref=f52e323] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/observability/connections
+          - separator [ref=f52e127]
+          - main [ref=f52e138]:
+            - generic [ref=f52e325]:
+              - generic [ref=f52e326]:
+                - generic [ref=f52e327]:
+                  - button "Collapse sidebar" [ref=f52e328]
+                  - tablist [ref=f52e333]:
+                    - generic [ref=f52e335]:
+                      - tab "New" [selected] [ref=f52e336] [cursor=pointer]
+                      - button "Close new tab" [ref=f52e342] [cursor=pointer]
+                - status [ref=f52e347]
+              - generic [ref=f52e349]:
+                - generic [ref=f52e350]:
+                  - button "More actions" [ref=f52e351] [cursor=pointer]
+                  - generic [ref=f52e357]:
+                    - 'button "Query source: Database" [ref=f52e358] [cursor=pointer]':
+                      - generic [ref=f52e364]: Database
+                    - generic [ref=f52e368]:
+                      - button "Save" [disabled]:
+                        - generic [aria-hidden]:
+                          - generic: Ctrl S
+                      - button "Run" [ref=f52e369] [cursor=pointer]:
+                        - generic [ref=f52e372]: Ctrl ↵
+                - generic [ref=f52e373]:
+                  - code [ref=f52e381]:
+                    - generic [ref=f52e382]:
+                      - generic [ref=f52e385]: "1"
+                      - textbox "Editor content" [active] [ref=f52e395]
+                      - generic: Hit CTRL+SHIFT+K to generate query or just start typing
+                  - separator [ref=f52e396]
+                  - generic [ref=f52e407]:
+                    - tablist [ref=f52e408]:
+                      - generic [ref=f52e409]:
+                        - tab "Results" [selected] [ref=f52e410] [cursor=pointer]
+                        - tab "Chart" [ref=f52e412] [cursor=pointer]
+                    - paragraph [ref=f52e415]:
+                      - text: Click
+                      - code [ref=f52e416]: Run
+                      - text: to execute your query
+  - region "Notifications alt+T"
+  - generic [ref=f52e417]:
+    - alert
+    - alert

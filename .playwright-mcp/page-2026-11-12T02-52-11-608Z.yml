@@ -1,0 +1,35 @@
+- generic [active] [ref=f3e1]:
+  - link "Skip to content":
+    - /url: "#geist-skip-nav"
+  - generic [ref=f3e3]:
+    - generic [ref=f3e7]:
+      - generic [ref=f3e13]:
+        - heading "Authorize Device" [level=1] [ref=f3e14]
+        - paragraph [ref=f3e15]: Enter the code from your device to grant Vercel CLI access to your account.
+      - generic:
+        - generic: X
+        - generic: J
+        - generic: X
+        - generic: "N"
+        - generic: —
+        - generic: "N"
+        - generic: R
+        - generic: P
+        - generic: M
+        - textbox "User Code" [disabled] [ref=f3e19]: xjxnnrpm
+      - generic [ref=f3e21]:
+        - generic [ref=f3e24]: Familia @ vercel 65.14.0 node-v24.22.1 win32 (x64)
+        - text: Florianópolis, Brazil
+        - generic [ref=f3e29]: November 11, 2026 at 11:51 PM
+        - text: 200.225.113.154
+      - button "Allow Access" [disabled] [ref=f3e33]
+      - paragraph [ref=f3e38]:
+        - text: Do not click “Allow Access” unless you initiated this login attempt from
+        - generic [ref=f3e39]: Vercel CLI
+    - contentinfo [ref=f3e46]:
+      - generic [ref=f3e48]:
+        - link "Terms" [ref=f3e49] [cursor=pointer]:
+          - /url: /legal/terms
+        - link "Privacy Policy" [ref=f3e50] [cursor=pointer]:
+          - /url: /legal/privacy-notice
+  - alert [ref=f3e51]

@@ -1,0 +1,74 @@
+- generic [active] [ref=f52e1]:
+  - generic [ref=f52e4]:
+    - link "Skip to content" [ref=f52e6] [cursor=pointer]:
+      - /url: "#main"
+    - banner [ref=f52e9]:
+      - generic [ref=f52e10]:
+        - generic [ref=f52e11]:
+          - link "Supabase Back to organization home" [ref=f52e12] [cursor=pointer]:
+            - /url: /dashboard/organizations
+            - img "Supabase" [ref=f52e13]
+            - generic [ref=f52e14]: Back to organization home
+          - button "Connect" [disabled] [ref=f52e22]
+        - generic [ref=f52e27]:
+          - button "Feedback" [ref=f52e28] [cursor=pointer]
+          - generic [ref=f52e30]:
+            - button [ref=f52e31] [cursor=pointer]:
+              - paragraph [ref=f52e36]: Search...
+              - generic [ref=f52e38]: Ctrl K
+            - button "Help" [ref=f52e39] [cursor=pointer]
+            - button "Advisor Center" [ref=f52e46] [cursor=pointer]
+            - button "SQL Editor" [ref=f52e51] [cursor=pointer]
+            - button "AI Assistant" [ref=f52e56] [cursor=pointer]
+          - button [ref=f52e64] [cursor=pointer]
+    - generic [ref=f52e69]:
+      - generic [ref=f52e73]:
+        - navigation [ref=f52e75]:
+          - list [ref=f52e77]:
+            - listitem [ref=f52e78]:
+              - link "Project Overview" [ref=f52e79] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+            - listitem [ref=f52e82]:
+              - button "Table Editor" [disabled]
+            - listitem [ref=f52e83]:
+              - button "SQL Editor" [disabled]
+          - list [ref=f52e85]:
+            - listitem [ref=f52e86]:
+              - button "Database" [disabled]
+            - listitem [ref=f52e87]:
+              - button "Authentication" [disabled]
+            - listitem [ref=f52e88]:
+              - button "Storage" [disabled]
+            - listitem [ref=f52e89]:
+              - link "Edge Functions" [ref=f52e90] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/functions
+            - listitem [ref=f52e96]:
+              - button "Realtime" [disabled]
+          - list [ref=f52e98]:
+            - listitem [ref=f52e99]:
+              - button "Advisors" [disabled]
+            - listitem [ref=f52e100]:
+              - button "Observability" [disabled]
+            - listitem [ref=f52e101]:
+              - link "Logs" [ref=f52e102] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/logs
+            - listitem [ref=f52e104]:
+              - button "Integrations" [disabled]
+          - list [ref=f52e106]:
+            - listitem [ref=f52e107]:
+              - link "Project Settings" [ref=f52e108] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/settings/general
+        - button "Sidebar control" [ref=f52e114] [cursor=pointer]
+      - main [ref=f52e121]:
+        - generic [ref=f52e123]:
+          - separator [ref=f52e127]
+          - main [ref=f52e138]:
+            - generic [ref=f52e140]:
+              - generic [ref=f52e141]:
+                - button "Collapse sidebar" [ref=f52e142]
+                - tablist [ref=f52e147]:
+                  - generic [ref=f52e149]:
+                    - tab "New" [selected] [ref=f52e150] [cursor=pointer]
+                    - button "Close new tab" [ref=f52e156] [cursor=pointer]
+              - status [ref=f52e161]
+  - region "Notifications alt+T"

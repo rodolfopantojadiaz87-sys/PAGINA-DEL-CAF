@@ -1,0 +1,257 @@
+import { useState, type FormEvent } from 'react'
+import { LockKeyhole, Mail, ShieldCheck } from 'lucide-react'
+import {
+  completeInvitedProfile,
+  requestPasswordRecovery,
+  signInWithEmail,
+  signOut,
+  updatePassword,
+} from '../services/authService'
+import { useAuth } from '../auth/useAuth'
+
+type AuthMode = 'sign-in' | 'recovery' | 'update-password'
+
+export function LoginPage() {
+  const { configured, user, passwordRecovery, invitationAcceptance } = useAuth()
+  const [mode, setMode] = useState<AuthMode>('sign-in')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [accessRequestNotice, setAccessRequestNotice] = useState(false)
+  const [error, setError] = useState<string>()
+  const [notice, setNotice] = useState<string>()
+  const [busy, setBusy] = useState(false)
+  const activeMode = invitationAcceptance || passwordRecovery ? 'update-password' : mode
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError(undefined)
+    setNotice(undefined)
+    setBusy(true)
+
+    try {
+      if (activeMode === 'recovery') {
+        await requestPasswordRecovery(email)
+        setNotice('Si la cuenta existe, recibirás un correo con instrucciones para recuperar el acceso.')
+      } else if (activeMode === 'update-password') {
+        if (password.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres.')
+        if (password !== confirmation) throw new Error('Las contraseñas no coinciden.')
+        if (invitationAcceptance && !fullName.trim()) {
+          throw new Error('Escribe tu nombre para completar el perfil.')
+        }
+        await updatePassword(password)
+        if (invitationAcceptance) await completeInvitedProfile(fullName)
+        await signOut()
+        setPassword('')
+        setConfirmation('')
+        setFullName('')
+        setMode('sign-in')
+        setNotice('Contraseña actualizada. Ya puedes iniciar sesión.')
+      } else {
+        await signInWithEmail(email, password)
+      }
+    } catch (requestError: unknown) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'No se pudo completar la operación. Inténtalo de nuevo.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleSignOut() {
+    setError(undefined)
+    setBusy(true)
+    try {
+      await signOut()
+    } catch (requestError: unknown) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'No se pudo cerrar la sesión.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (user && activeMode !== 'update-password') {
+    return (
+      <div className="auth-page">
+        <section className="auth-card auth-card--notice">
+          <span className="auth-card__icon"><ShieldCheck size={26} /></span>
+          <p className="auth-card__eyebrow">AUTENTICACIÓN COMPLETADA</p>
+          <h1>Conexión al espacio compartido pendiente</h1>
+          <p>Has iniciado sesión como <strong>{user.email}</strong>.</p>
+          <div className="auth-message" role="status">
+            La autenticación está lista, pero los registros y permisos todavía
+            no están conectados a Supabase. Los registros existentes siguen en
+            este dispositivo y no se muestran para evitar exponerlos a otras
+            cuentas.
+          </div>
+          {error && <p className="auth-error" role="alert">{error}</p>}
+          <button className="auth-button" disabled={busy} onClick={() => void handleSignOut()} type="button">
+            {busy ? 'Cerrando sesión…' : 'Cerrar sesión'}
+          </button>
+        </section>
+      </div>
+    )
+  }
+
+  const isRecovery = activeMode === 'recovery'
+  const isPasswordUpdate = activeMode === 'update-password'
+  const title = isPasswordUpdate
+    ? 'Crear contraseña nueva'
+    : isRecovery
+      ? 'Recuperar acceso'
+      : 'Iniciar sesión'
+
+  return (
+    <div className="auth-page">
+      <section className="auth-card">
+        <div className="auth-card__brand">
+          <span className="auth-card__icon"><LockKeyhole size={25} /></span>
+          <p className="auth-card__eyebrow">SISTEMA PRIVADO</p>
+        </div>
+        <h1>{title}</h1>
+        <p className="auth-card__description">
+          {isRecovery
+            ? 'Te enviaremos instrucciones al correo asociado a tu cuenta.'
+            : invitationAcceptance
+              ? 'Completa tu perfil y elige una contraseña segura de al menos 8 caracteres.'
+            : isPasswordUpdate
+              ? 'Elige una contraseña segura de al menos 8 caracteres.'
+              : 'Usa las credenciales de tu cuenta autorizada.'}
+        </p>
+
+        {!configured && (
+          <div className="auth-message auth-message--warning" role="alert">
+            Supabase todavía no está configurado. Define
+            {' '}<code>VITE_SUPABASE_URL</code> y
+            {' '}<code>VITE_SUPABASE_PUBLISHABLE_KEY</code> en un archivo
+            <code> .env.local</code> y reinicia Vite.
+          </div>
+        )}
+
+        <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
+          {!isPasswordUpdate && (
+            <label className="auth-field">
+              <span>Correo electrónico</span>
+              <span className="auth-field__control">
+                <Mail size={18} />
+                <input
+                  autoComplete="email"
+                  disabled={!configured || busy}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  type="email"
+                  value={email}
+                />
+              </span>
+            </label>
+          )}
+          {invitationAcceptance && (
+            <label className="auth-field">
+              <span>Nombre y apellido</span>
+              <input
+                autoComplete="name"
+                disabled={!configured || busy}
+                onChange={(event) => setFullName(event.target.value)}
+                required
+                type="text"
+                value={fullName}
+              />
+            </label>
+          )}
+          {!isRecovery && (
+            <label className="auth-field">
+              <span>{isPasswordUpdate ? 'Contraseña nueva' : 'Contraseña'}</span>
+              <input
+                autoComplete={isPasswordUpdate ? 'new-password' : 'current-password'}
+                disabled={!configured || busy}
+                minLength={8}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                type="password"
+                value={password}
+              />
+            </label>
+          )}
+          {isPasswordUpdate && (
+            <label className="auth-field">
+              <span>Repetir contraseña nueva</span>
+              <input
+                autoComplete="new-password"
+                disabled={!configured || busy}
+                minLength={8}
+                onChange={(event) => setConfirmation(event.target.value)}
+                required
+                type="password"
+                value={confirmation}
+              />
+            </label>
+          )}
+          {error && <p className="auth-error" role="alert">{error}</p>}
+          {notice && <p className="auth-message" role="status">{notice}</p>}
+          <button className="auth-button" disabled={!configured || busy} type="submit">
+            {busy
+              ? 'Procesando…'
+              : isRecovery
+                ? 'Enviar instrucciones'
+                : isPasswordUpdate
+                  ? 'Actualizar contraseña'
+                  : 'Entrar'}
+          </button>
+        </form>
+
+        {!isPasswordUpdate && (
+          <button
+            className="auth-link"
+            disabled={busy}
+            onClick={() => {
+              setMode(isRecovery ? 'sign-in' : 'recovery')
+              setError(undefined)
+              setNotice(undefined)
+            }}
+            type="button"
+          >
+            {isRecovery ? 'Volver al inicio de sesión' : '¿Olvidaste tu contraseña?'}
+          </button>
+        )}
+        {!isRecovery && !isPasswordUpdate && (
+          <>
+            <p className="auth-card__footnote">
+              Las cuentas son creadas por la administración. No hay registro público.
+            </p>
+            {import.meta.env.VITE_ACCESS_REQUEST_EMAIL?.trim() ? (
+              <a
+                className="auth-link"
+                href={`mailto:${encodeURIComponent(import.meta.env.VITE_ACCESS_REQUEST_EMAIL.trim()).replace(/%40/gi, '@')}?subject=${encodeURIComponent('Solicitud de acceso a Atenciones')}`}
+              >
+                Solicitar acceso
+              </a>
+            ) : (
+              <>
+                <button
+                  className="auth-link"
+                  onClick={() => setAccessRequestNotice(true)}
+                  type="button"
+                >
+                  Solicitar acceso
+                </button>
+                {accessRequestNotice && (
+                  <p className="auth-card__footnote">
+                    Pide a la persona administradora del espacio que te envíe una invitación a este correo.
+                  </p>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </section>
+    </div>
+  )
+}

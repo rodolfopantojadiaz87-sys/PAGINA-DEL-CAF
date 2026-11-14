@@ -1,0 +1,196 @@
+- generic [active] [ref=f58e1]:
+  - generic [ref=f58e4]:
+    - link "Skip to content" [ref=f58e6] [cursor=pointer]:
+      - /url: "#main"
+    - banner [ref=f58e9]:
+      - generic [ref=f58e10]:
+        - generic [ref=f58e11]:
+          - link "Supabase Back to organization home" [ref=f58e12] [cursor=pointer]:
+            - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+            - img "Supabase" [ref=f58e13]
+            - generic [ref=f58e14]: Back to organization home
+          - generic [ref=f58e15]:
+            - generic [ref=f58e278]:
+              - link "rodolfopantojadiaz87-sys's Org Free" [ref=f58e279] [cursor=pointer]:
+                - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+                - generic [ref=f58e290]: rodolfopantojadiaz87-sys's Org
+                - generic [ref=f58e291]: Free
+              - button "Show organizations" [ref=f58e292] [cursor=pointer]
+            - generic [ref=f58e16]:
+              - generic [ref=f58e297]:
+                - link "CRAF (Centro de Registro de Ayuda a la Familia)" [ref=f58e298] [cursor=pointer]:
+                  - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                - button "Show organization projects" [ref=f58e303] [cursor=pointer]
+              - generic [ref=f58e311]:
+                - link "main Production" [ref=f58e312] [cursor=pointer]:
+                  - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                  - generic "main" [ref=f58e313]
+                  - generic [ref=f58e314]: Production
+                - button "Show project branches" [ref=f58e315] [cursor=pointer]
+          - button "Connect" [ref=f58e320] [cursor=pointer]
+        - generic [ref=f58e27]:
+          - button "Feedback" [ref=f58e28] [cursor=pointer]
+          - generic [ref=f58e30]:
+            - button [ref=f58e31] [cursor=pointer]:
+              - paragraph [ref=f58e36]: Search...
+              - generic [ref=f58e38]: Ctrl K
+            - button "Help" [ref=f58e39] [cursor=pointer]
+            - button "Advisor Center" [ref=f58e46] [cursor=pointer]
+            - button "SQL Editor" [ref=f58e51] [cursor=pointer]
+            - button "AI Assistant" [ref=f58e56] [cursor=pointer]
+          - button [ref=f58e325] [cursor=pointer]:
+            - img "rodolfopantojadiaz87-sys" [ref=f58e326]
+    - generic [ref=f58e69]:
+      - generic [ref=f58e73]:
+        - navigation [ref=f58e75]:
+          - list [ref=f58e77]:
+            - listitem [ref=f58e78]:
+              - link "Project Overview" [ref=f58e79] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+            - listitem [ref=f58e82]:
+              - link "Table Editor" [ref=f58e327] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/editor
+            - listitem [ref=f58e83]:
+              - link "SQL Editor" [ref=f58e330] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/sql
+          - list [ref=f58e85]:
+            - listitem [ref=f58e86]:
+              - link "Database" [ref=f58e333] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/database/schemas
+            - listitem [ref=f58e87]:
+              - link "Authentication" [ref=f58e338] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/users
+            - listitem [ref=f58e88]:
+              - link "Storage" [ref=f58e341] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/storage/files
+            - listitem [ref=f58e89]:
+              - link "Edge Functions" [ref=f58e90] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/functions
+            - listitem [ref=f58e96]:
+              - link "Compute New" [ref=f58e344] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/compute
+                - generic [ref=f58e347]: Compute
+                - generic [ref=f58e348]: New
+            - listitem [ref=f58e349]:
+              - link "Realtime" [ref=f58e350] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/realtime/inspector
+          - list [ref=f58e98]:
+            - listitem [ref=f58e99]:
+              - link "Advisors" [ref=f58e353] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/advisors/health
+            - listitem [ref=f58e100]:
+              - link "Observability" [ref=f58e357] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/observability
+            - listitem [ref=f58e101]:
+              - link "Logs" [ref=f58e102] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/logs
+            - listitem [ref=f58e104]:
+              - link "Integrations" [ref=f58e366] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/integrations
+          - list [ref=f58e106]:
+            - listitem [ref=f58e107]:
+              - link "Project Settings" [ref=f58e108] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/settings/general
+        - button "Sidebar control" [ref=f58e114] [cursor=pointer]
+      - main [ref=f58e121]:
+        - generic [ref=f58e123]:
+          - generic [ref=f58e127]:
+            - heading "Authentication" [level=4] [ref=f58e129]
+            - menu "Sidebar" [ref=f58e132]:
+              - list [ref=f58e133]:
+                - generic [ref=f58e136]:
+                  - generic [ref=f58e137]: Manage
+                  - generic [ref=f58e141]:
+                    - link [ref=f58e142] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/users
+                      - menuitem "Users" [ref=f58e143]
+                    - link [ref=f58e148] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/oauth-apps
+                      - menuitem "OAuth Apps" [ref=f58e149]
+                - generic [ref=f58e157]:
+                  - generic [ref=f58e158]: Notifications
+                  - link [ref=f58e163] [cursor=pointer]:
+                    - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/templates
+                    - menuitem "Emails" [ref=f58e164]
+                - generic [ref=f58e172]:
+                  - generic [ref=f58e173]: Configuration
+                  - generic [ref=f58e177]:
+                    - link [ref=f58e178] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/database/policies
+                      - menuitem "Policies" [ref=f58e179]:
+                        - generic "Policies" [ref=f58e182]
+                    - link [ref=f58e188] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/providers
+                      - menuitem "Sign In / Providers" [ref=f58e189]
+                    - link [ref=f58e370] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/passkeys
+                      - menuitem "Passkeys Beta" [ref=f58e371]:
+                        - generic [ref=f58e374]:
+                          - generic [ref=f58e375]: Passkeys
+                          - generic [ref=f58e376]: Beta
+                    - link [ref=f58e194] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/oauth-server
+                      - menuitem "OAuth Server Beta" [ref=f58e195]:
+                        - generic [ref=f58e198]:
+                          - generic [ref=f58e199]: OAuth Server
+                          - generic [ref=f58e200]: Beta
+                    - link [ref=f58e201] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/sessions
+                      - menuitem "Sessions" [ref=f58e202]
+                    - link [ref=f58e207] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/rate-limits
+                      - menuitem "Rate Limits" [ref=f58e208]
+                    - link [ref=f58e213] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/mfa
+                      - menuitem "Multi-Factor" [ref=f58e214]
+                    - link [ref=f58e219] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/url-configuration
+                      - menuitem "URL Configuration" [ref=f58e220]
+                    - link [ref=f58e225] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/protection
+                      - menuitem "Attack Protection" [ref=f58e226]
+                    - link [ref=f58e231] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/hooks
+                      - menuitem "Auth Hooks Beta" [ref=f58e232]:
+                        - generic [ref=f58e235]:
+                          - generic [ref=f58e236]: Auth Hooks
+                          - generic [ref=f58e237]: Beta
+                    - link [ref=f58e238] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/audit-logs
+                      - menuitem "Audit Logs" [ref=f58e239]
+                    - link [ref=f58e244] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/performance
+                      - menuitem "Performance" [ref=f58e245]
+          - separator [disabled] [ref=f58e250]
+          - main [ref=f58e261]:
+            - generic [ref=f58e380]:
+              - heading "URL Configuration" [level=1] [ref=f58e381]
+              - generic [ref=f58e382]: Configure site URL and redirect URLs for authentication
+            - generic [ref=f58e383]:
+              - generic [ref=f58e384]:
+                - heading "Site URL" [level=2] [ref=f58e388]
+                - generic [ref=f58e391]:
+                  - generic [ref=f58e394]:
+                    - textbox "Site URL" [ref=f58e396]: http://127.0.0.1:5173
+                    - generic [ref=f58e397]:
+                      - generic [ref=f58e398]: Site URL
+                      - generic [ref=f58e400]: Configure the default redirect URL used when a redirect URL is not specified or doesn't match one from the allow list. This value is also exposed as a template variable in the email templates section. Wildcards cannot be used here.
+                  - generic [ref=f58e401]:
+                    - button "Save changes" [disabled]
+              - generic [ref=f58e402]:
+                - generic [ref=f58e404]:
+                  - generic [ref=f58e405]:
+                    - heading "Redirect URLs" [level=2] [ref=f58e406]
+                    - generic [ref=f58e407]: URLs that auth providers are permitted to redirect to post authentication. Wildcards are allowed, for example, https://*.domain.com
+                  - link "Docs" [ref=f58e409] [cursor=pointer]:
+                    - /url: https://supabase.com/docs/guides/auth/concepts/redirect-urls
+                - generic [ref=f58e415]:
+                  - button "Add URL" [ref=f58e417] [cursor=pointer]
+                  - generic [ref=f58e420] [cursor=pointer]:
+                    - checkbox [ref=f58e422]
+                    - generic [ref=f58e426]: http://127.0.0.1:5173/**
+                  - generic [ref=f58e428] [cursor=pointer]:
+                    - checkbox [ref=f58e430]
+                    - generic [ref=f58e434]: http://localhost:5173/**
+                  - paragraph [ref=f58e436]: "Total URLs: 2"
+  - region "Notifications alt+T"

@@ -1,0 +1,214 @@
+- generic [ref=f49e1]:
+  - generic [ref=f49e4]:
+    - link "Skip to content" [ref=f49e6] [cursor=pointer]:
+      - /url: "#main"
+    - banner [ref=f49e9]:
+      - generic [ref=f49e10]:
+        - generic [ref=f49e11]:
+          - link "Supabase Back to organization home" [ref=f49e12] [cursor=pointer]:
+            - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+            - img "Supabase" [ref=f49e13]
+            - generic [ref=f49e14]: Back to organization home
+          - generic [ref=f49e15]:
+            - generic [ref=f49e19]:
+              - link "rodolfopantojadiaz87-sys's Org Free" [ref=f49e20] [cursor=pointer]:
+                - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+                - generic [ref=f49e31]: rodolfopantojadiaz87-sys's Org
+                - generic [ref=f49e32]: Free
+              - button "Show organizations" [ref=f49e33] [cursor=pointer]
+            - generic [ref=f49e38]:
+              - generic [ref=f49e42]:
+                - link "CRAF (Centro de Registro de Ayuda a la Familia)" [ref=f49e43] [cursor=pointer]:
+                  - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                - button "Show organization projects" [ref=f49e48] [cursor=pointer]
+              - generic [ref=f49e56]:
+                - link "main Production" [ref=f49e57] [cursor=pointer]:
+                  - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                  - generic "main" [ref=f49e58]
+                  - generic [ref=f49e59]: Production
+                - button "Show project branches" [ref=f49e60] [cursor=pointer]
+          - button "Connect" [ref=f49e66] [cursor=pointer]
+        - generic [ref=f49e71]:
+          - button "Feedback" [ref=f49e72] [cursor=pointer]
+          - generic [ref=f49e74]:
+            - button [ref=f49e75] [cursor=pointer]:
+              - paragraph [ref=f49e80]: Search...
+              - generic [ref=f49e82]: Ctrl K
+            - button "Help" [ref=f49e83] [cursor=pointer]
+            - button "Advisor Center" [ref=f49e90] [cursor=pointer]
+            - button "SQL Editor" [ref=f49e95] [cursor=pointer]
+            - button "AI Assistant" [ref=f49e100] [cursor=pointer]
+          - button [ref=f49e108] [cursor=pointer]:
+            - img "rodolfopantojadiaz87-sys" [ref=f49e110]
+    - generic [ref=f49e111]:
+      - generic [ref=f49e115]:
+        - navigation [ref=f49e117]:
+          - list [ref=f49e119]:
+            - listitem [ref=f49e120]:
+              - link "Project Overview" [ref=f49e121] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+            - listitem [ref=f49e124]:
+              - link "Table Editor" [ref=f49e125] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/editor
+            - listitem [ref=f49e128]:
+              - link "SQL Editor" [ref=f49e129] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/sql
+          - list [ref=f49e133]:
+            - listitem [ref=f49e134]:
+              - link "Database" [ref=f49e135] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/database/schemas
+            - listitem [ref=f49e140]:
+              - link "Authentication" [ref=f49e141] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/users
+            - listitem [ref=f49e144]:
+              - link "Storage" [ref=f49e145] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/storage/files
+            - listitem [ref=f49e148]:
+              - link "Edge Functions" [ref=f49e149] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/functions
+            - listitem [ref=f49e155]:
+              - link "Compute New" [ref=f49e156] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/compute
+                - generic [ref=f49e159]: Compute
+                - generic [ref=f49e160]: New
+            - listitem [ref=f49e161]:
+              - link "Realtime" [ref=f49e162] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/realtime/inspector
+          - list [ref=f49e166]:
+            - listitem [ref=f49e167]:
+              - link "Advisors" [ref=f49e168] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/advisors/health
+            - listitem [ref=f49e172]:
+              - link "Observability" [ref=f49e173] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/observability
+            - listitem [ref=f49e182]:
+              - link "Logs" [ref=f49e183] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/logs
+            - listitem [ref=f49e185]:
+              - link "Integrations" [ref=f49e186] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/integrations
+          - list [ref=f49e191]:
+            - listitem [ref=f49e192]:
+              - link "Project Settings" [ref=f49e193] [cursor=pointer]:
+                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/settings/general
+        - button "Sidebar control" [ref=f49e199] [cursor=pointer]
+      - main [ref=f49e206]:
+        - generic [ref=f49e208]:
+          - generic [ref=f49e212]:
+            - heading "Authentication" [level=4] [ref=f49e214]
+            - menu "Sidebar" [ref=f49e217]:
+              - list [ref=f49e218]:
+                - generic [ref=f49e221]:
+                  - generic [ref=f49e222]: Manage
+                  - generic [ref=f49e226]:
+                    - link [ref=f49e227] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/users
+                      - menuitem "Users" [ref=f49e228]
+                    - link [ref=f49e233] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/oauth-apps
+                      - menuitem "OAuth Apps" [ref=f49e234]
+                - generic [ref=f49e242]:
+                  - generic [ref=f49e243]: Notifications
+                  - link [ref=f49e248] [cursor=pointer]:
+                    - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/templates
+                    - menuitem "Emails" [ref=f49e249]
+                - generic [ref=f49e257]:
+                  - generic [ref=f49e258]: Configuration
+                  - generic [ref=f49e262]:
+                    - link [ref=f49e263] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/database/policies
+                      - menuitem "Policies" [ref=f49e264]:
+                        - generic "Policies" [ref=f49e267]
+                    - link [ref=f49e273] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/providers
+                      - menuitem "Sign In / Providers" [ref=f49e274]
+                    - link [ref=f49e279] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/passkeys
+                      - menuitem "Passkeys Beta" [ref=f49e280]:
+                        - generic [ref=f49e283]:
+                          - generic [ref=f49e284]: Passkeys
+                          - generic [ref=f49e285]: Beta
+                    - link [ref=f49e286] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/oauth-server
+                      - menuitem "OAuth Server Beta" [ref=f49e287]:
+                        - generic [ref=f49e290]:
+                          - generic [ref=f49e291]: OAuth Server
+                          - generic [ref=f49e292]: Beta
+                    - link [ref=f49e293] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/sessions
+                      - menuitem "Sessions" [ref=f49e294]
+                    - link [ref=f49e299] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/rate-limits
+                      - menuitem "Rate Limits" [ref=f49e300]
+                    - link [ref=f49e305] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/mfa
+                      - menuitem "Multi-Factor" [ref=f49e306]
+                    - link [ref=f49e311] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/url-configuration
+                      - menuitem "URL Configuration" [ref=f49e312]
+                    - link [ref=f49e317] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/protection
+                      - menuitem "Attack Protection" [ref=f49e318]
+                    - link [ref=f49e323] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/hooks
+                      - menuitem "Auth Hooks Beta" [ref=f49e324]:
+                        - generic [ref=f49e327]:
+                          - generic [ref=f49e328]: Auth Hooks
+                          - generic [ref=f49e329]: Beta
+                    - link [ref=f49e330] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/audit-logs
+                      - menuitem "Audit Logs" [ref=f49e331]
+                    - link [ref=f49e336] [cursor=pointer]:
+                      - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/performance
+                      - menuitem "Performance" [ref=f49e337]
+          - separator [disabled] [ref=f49e342]
+          - main [ref=f49e353]:
+            - generic [ref=f49e354]:
+              - heading "Users" [level=3] [ref=f49e357]
+              - generic [ref=f49e358]:
+                - generic [ref=f49e359]:
+                  - generic [ref=f49e360]:
+                    - combobox [ref=f49e365] [cursor=pointer]:
+                      - generic: Email address
+                    - group [ref=f49e368]:
+                      - textbox "Search by email" [ref=f49e369]
+                  - button "All columns" [ref=f49e371] [cursor=pointer]
+                  - button "Sorted by user ID" [disabled] [ref=f49e377]
+                - generic [ref=f49e382]:
+                  - button "Refresh" [ref=f49e383] [cursor=pointer]
+                  - button "Add user" [expanded] [ref=f49e390] [cursor=pointer]
+              - grid [ref=f49e401]:
+                - row [ref=f49e402]:
+                  - columnheader [ref=f49e403]
+                  - columnheader "UID" [ref=f49e404]:
+                    - paragraph [ref=f49e407]: UID
+                  - columnheader "Display name" [ref=f49e409]:
+                    - paragraph [ref=f49e412]: Display name
+                  - columnheader "Email" [ref=f49e414]:
+                    - paragraph [ref=f49e417]: Email
+                  - columnheader "Phone" [ref=f49e419]:
+                    - paragraph [ref=f49e422]: Phone
+                  - columnheader "Providers" [ref=f49e424]:
+                    - paragraph [ref=f49e427]: Providers
+                  - columnheader "Provider type" [ref=f49e429]:
+                    - paragraph [ref=f49e432]: Provider type
+                - generic [ref=f49e440]:
+                  - paragraph [ref=f49e441]: No users in your project
+                  - paragraph [ref=f49e442]: There are currently no users who signed up to your project
+              - generic [ref=f49e444]:
+                - generic [ref=f49e445]: "Total: 10 users (estimated)"
+                - button [ref=f49e446] [cursor=pointer]
+  - region "Notifications alt+T"
+  - menu "Add user" [active] [ref=f49e452]:
+    - menuitem "Send invitation I then I" [ref=f49e453]:
+      - paragraph [ref=f49e457]: Send invitation
+      - generic [ref=f49e458]:
+        - generic [ref=f49e459]: I
+        - generic [ref=f49e460]: then
+        - generic [ref=f49e461]: I
+    - menuitem "Create new user I then U" [ref=f49e462]:
+      - paragraph [ref=f49e466]: Create new user
+      - generic [ref=f49e467]:
+        - generic [ref=f49e468]: I
+        - generic [ref=f49e469]: then
+        - generic [ref=f49e470]: U
