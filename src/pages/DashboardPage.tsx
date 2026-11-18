@@ -31,11 +31,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         eyebrow={t('RESUMEN GENERAL')}
         title={t('Inicio')}
         description={t('Un vistazo rápido a las personas y atenciones registradas.')}
-        action={
-          <button className="button button--primary" onClick={() => onNavigate('new')} type="button">
-            <Plus size={18} /> {t('Nuevo registro')}
-          </button>
-        }
       />
       {error && <p className="form-message form-message--error" role="alert">{t(error)}</p>}
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Database, Eye, EyeOff, ShieldCheck, Trash2, UserPlus, UsersRound } from 'lucide-react'
+import { Database, Eye, EyeOff, ShieldCheck, Trash2, UserPlus, UsersRound, X } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
 import { SectionTitle } from '../components/SectionTitle'
@@ -33,6 +33,7 @@ export function SettingsPage() {
   const [createNotice, setCreateNotice] = useState('')
   const [memberNotice, setMemberNotice] = useState('')
   const [updatingMemberId, setUpdatingMemberId] = useState<string>()
+  const [memberToRemove, setMemberToRemove] = useState<WorkspaceUser | null>(null)
 
   const loadMembers = useCallback(
     () => listWorkspaceUsers(SHARED_WORKSPACE_ID),
@@ -133,13 +134,9 @@ export function SettingsPage() {
     }
   }
 
-  async function removeMember(member: WorkspaceUser) {
-    const name = member.email ?? member.full_name
-    if (!window.confirm(t(
-      '¿Quitar a {name} del espacio? Perderá el acceso, pero sus registros históricos se conservarán.',
-      { name },
-    ))) return
-
+  async function removeMember() {
+    const member = memberToRemove
+    if (!member) return
     setUpdatingMemberId(member.id)
     setMembersError('')
     setMemberNotice('')
@@ -148,6 +145,7 @@ export function SettingsPage() {
       setMembers((currentMembers) =>
         currentMembers.filter(({ id }) => id !== member.id),
       )
+      setMemberToRemove(null)
       setMemberNotice('Se quitó el acceso del espacio. Sus registros históricos se conservaron.')
     } catch (removeError: unknown) {
       setMembersError(
@@ -159,6 +157,9 @@ export function SettingsPage() {
       setUpdatingMemberId(undefined)
     }
   }
+
+  const removingMember = memberToRemove !== null &&
+    updatingMemberId === memberToRemove.id
 
   return (
     <div className="page-stack page-stack--narrow">
@@ -269,7 +270,7 @@ export function SettingsPage() {
             {t('Supabase Auth protege la contraseña; no se muestra después ni se guarda en la lista de miembros. El acceso funciona con correo y contraseña, sin invitación por correo.')}
           </p>
           {createNotice && <p className="form-message form-message--success" role="status">{t(createNotice)}</p>}
-          {membersError && <p className="form-message form-message--error" role="alert">{t(membersError)}</p>}
+          {membersError && !memberToRemove && <p className="form-message form-message--error" role="alert">{t(membersError)}</p>}
 
           <div className="table-scroll member-list">
             <table>
@@ -349,7 +350,11 @@ export function SettingsPage() {
                               aria-label={t('Quitar a {name} del espacio', { name: memberName })}
                               className="icon-button icon-button--danger"
                               disabled={updatingMemberId === member.id}
-                              onClick={() => void removeMember(member)}
+                              onClick={() => {
+                                setMembersError('')
+                                setMemberNotice('')
+                                setMemberToRemove(member)
+                              }}
                               title={t('Quitar colaborador')}
                               type="button"
                             >
@@ -366,6 +371,73 @@ export function SettingsPage() {
           </div>
           {memberNotice && <p className="form-message form-message--success" role="status">{t(memberNotice)}</p>}
         </section>
+      )}
+      {memberToRemove && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !removingMember) {
+              setMemberToRemove(null)
+            }
+          }}
+          role="presentation"
+        >
+          <section
+            aria-describedby="remove-member-description"
+            aria-labelledby="remove-member-title"
+            aria-modal="true"
+            className="modal-card"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && !removingMember) {
+                setMemberToRemove(null)
+              }
+            }}
+            role="alertdialog"
+          >
+            <div className="modal-heading">
+              <div>
+                <p className="eyebrow">{t('ADMINISTRACIÓN')}</p>
+                <h2 id="remove-member-title">{t('Quitar colaborador')}</h2>
+                <p id="remove-member-description">
+                  {t(
+                    '¿Quitar a {name} del espacio? Perderá el acceso, pero sus registros históricos se conservarán.',
+                    { name: memberToRemove.email ?? memberToRemove.full_name },
+                  )}
+                </p>
+              </div>
+              <button
+                aria-label={t('Cerrar diálogo')}
+                className="icon-button"
+                disabled={removingMember}
+                onClick={() => setMemberToRemove(null)}
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {membersError && <p className="form-message form-message--error" role="alert">{t(membersError)}</p>}
+            <div className="form-actions">
+              <button
+                autoFocus
+                className="button button--secondary"
+                disabled={removingMember}
+                onClick={() => setMemberToRemove(null)}
+                type="button"
+              >
+                {t('Cancelar')}
+              </button>
+              <button
+                className="button button--danger"
+                disabled={removingMember}
+                onClick={() => void removeMember()}
+                type="button"
+              >
+                <Trash2 size={16} />
+                {removingMember ? t('Quitando…') : t('Quitar colaborador')}
+              </button>
+            </div>
+          </section>
+        </div>
       )}
     </div>
   )
