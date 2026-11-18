@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Database, MailPlus, ShieldCheck, UsersRound } from 'lucide-react'
+import { Database, Eye, EyeOff, ShieldCheck, UserPlus, UsersRound } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
 import { SectionTitle } from '../components/SectionTitle'
 import { useAttendanceData } from '../hooks/useAttendanceData'
+import { useI18n } from '../i18n'
 import {
-  inviteWorkspaceUser,
+  createWorkspaceUser,
   listWorkspaceUsers,
   updateWorkspaceMember,
   type WorkspaceUser,
@@ -13,6 +14,7 @@ import {
 import { SHARED_WORKSPACE_ID } from '../constants/workspace'
 
 export function SettingsPage() {
+  const { t } = useI18n()
   const { people, appointments, loading, error } = useAttendanceData()
   const { access } = useWorkspace()
   const { user } = useAuth()
@@ -20,9 +22,13 @@ export function SettingsPage() {
   const [members, setMembers] = useState<WorkspaceUser[]>([])
   const [membersLoaded, setMembersLoaded] = useState(false)
   const [membersError, setMembersError] = useState('')
-  const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteBusy, setInviteBusy] = useState(false)
-  const [inviteNotice, setInviteNotice] = useState('')
+  const [newMemberName, setNewMemberName] = useState('')
+  const [newMemberEmail, setNewMemberEmail] = useState('')
+  const [newMemberPassword, setNewMemberPassword] = useState('')
+  const [newMemberRole, setNewMemberRole] = useState<WorkspaceUser['role']>('attendant')
+  const [showNewMemberPassword, setShowNewMemberPassword] = useState(false)
+  const [createBusy, setCreateBusy] = useState(false)
+  const [createNotice, setCreateNotice] = useState('')
   const [updatingMemberId, setUpdatingMemberId] = useState<string>()
 
   const loadMembers = useCallback(
@@ -71,24 +77,33 @@ export function SettingsPage() {
     }
   }
 
-  async function handleInvite(event: FormEvent<HTMLFormElement>) {
+  async function handleCreateMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setInviteBusy(true)
-    setInviteNotice('')
+    setCreateBusy(true)
+    setCreateNotice('')
     setMembersError('')
     try {
-      await inviteWorkspaceUser(inviteEmail)
-      setInviteEmail('')
-      setInviteNotice('Invitación enviada. El colaborador recibirá un enlace para completar su perfil.')
+      await createWorkspaceUser(
+        newMemberName,
+        newMemberEmail,
+        newMemberPassword,
+        newMemberRole,
+      )
+      setNewMemberName('')
+      setNewMemberEmail('')
+      setNewMemberPassword('')
+      setNewMemberRole('attendant')
+      setShowNewMemberPassword(false)
+      setCreateNotice('Cuenta creada y activa. Comparte las credenciales con la persona por un canal seguro.')
       await refreshMembers()
-    } catch (inviteError: unknown) {
+    } catch (createError: unknown) {
       setMembersError(
-        inviteError instanceof Error
-          ? inviteError.message
-          : 'No se pudo enviar la invitación.',
+        createError instanceof Error
+          ? createError.message
+          : 'No se pudo crear la cuenta.',
       )
     } finally {
-      setInviteBusy(false)
+      setCreateBusy(false)
     }
   }
 
@@ -118,27 +133,27 @@ export function SettingsPage() {
   return (
     <div className="page-stack page-stack--narrow">
       <SectionTitle
-        eyebrow="ESPACIO DE TRABAJO"
-        title="Configuración"
-        description="Consulta el equipo y administra el acceso al espacio compartido."
+        eyebrow={t('ESPACIO DE TRABAJO')}
+        title={t('Configuración')}
+        description={t('Consulta el equipo y administra el acceso al espacio compartido.')}
       />
-      {error && <p className="form-message form-message--error" role="alert">{error}</p>}
+      {error && <p className="form-message form-message--error" role="alert">{t(error)}</p>}
       <section className="surface-card storage-summary">
         <span className="storage-summary__icon"><Database size={22} /></span>
         <div>
-          <h2>Base compartida</h2>
-          <p>Los registros se consultan desde el espacio de trabajo Supabase.</p>
+          <h2>{t('Base compartida')}</h2>
+          <p>{t('Los registros se consultan desde el espacio de trabajo Supabase.')}</p>
         </div>
         <div className="storage-summary__counts">
-          <span><strong>{loading ? '…' : people.length}</strong> personas</span>
-          <span><strong>{loading ? '…' : appointments.length}</strong> atenciones</span>
+          <span><strong>{loading ? '…' : people.length}</strong> {t('Personas')}</span>
+          <span><strong>{loading ? '…' : appointments.length}</strong> {t('Atenciones')}</span>
         </div>
       </section>
       <section className="surface-card settings-card">
         <span className="settings-card__icon settings-card__icon--green"><ShieldCheck size={20} /></span>
         <div className="settings-card__body">
-          <h2>Acceso protegido</h2>
-          <p>Los miembros activos pueden consultar el espacio. Cada colaborador edita sus propios registros; solo la administración puede cambiar permisos o eliminar registros.</p>
+          <h2>{t('Acceso protegido')}</h2>
+          <p>{t('Los miembros activos pueden consultar el espacio. Cada colaborador edita sus propios registros; solo la administración puede cambiar permisos o eliminar registros.')}</p>
         </div>
       </section>
 
@@ -147,65 +162,115 @@ export function SettingsPage() {
           <div className="administration-heading">
             <span className="storage-summary__icon"><UsersRound size={21} /></span>
             <div>
-              <p className="eyebrow">ADMINISTRACIÓN</p>
-              <h2>Miembros del espacio</h2>
-              <p>Invita colaboradores, cambia su rol y desactiva o reactiva su acceso sin borrar sus registros.</p>
+              <p className="eyebrow">{t('ADMINISTRACIÓN')}</p>
+              <h2>{t('Miembros del espacio')}</h2>
+              <p>{t('Crea cuentas con su rol y contraseña, y administra su acceso sin borrar sus registros.')}</p>
             </div>
           </div>
 
-          <form className="member-invite-form" onSubmit={(event) => void handleInvite(event)}>
+          <form className="member-create-form" onSubmit={(event) => void handleCreateMember(event)}>
             <label className="field">
-              <span>Correo del colaborador</span>
+              <span>{t('Nombre y apellido')}</span>
               <input
-                autoComplete="email"
-                disabled={inviteBusy}
-                onChange={(event) => setInviteEmail(event.target.value)}
-                placeholder="nombre@ejemplo.com"
+                autoComplete="name"
+                disabled={createBusy}
+                onChange={(event) => setNewMemberName(event.target.value)}
+                maxLength={120}
+                placeholder={t('Nombre del colaborador')}
                 required
-                type="email"
-                value={inviteEmail}
+                type="text"
+                value={newMemberName}
               />
             </label>
-            <button className="button button--primary" disabled={inviteBusy} type="submit">
-              <MailPlus size={16} />
-              {inviteBusy ? 'Enviando…' : 'Invitar colaborador'}
+            <label className="field">
+              <span>{t('Correo electrónico')}</span>
+              <input
+                autoComplete="email"
+                disabled={createBusy}
+                onChange={(event) => setNewMemberEmail(event.target.value)}
+                placeholder={t('nombre@ejemplo.com')}
+                required
+                type="email"
+                value={newMemberEmail}
+              />
+            </label>
+            <label className="field">
+              <span>{t('Contraseña inicial')}</span>
+              <span className="member-create-form__password">
+                <input
+                  autoComplete="new-password"
+                  disabled={createBusy}
+                  minLength={6}
+                  onChange={(event) => setNewMemberPassword(event.target.value)}
+                  required
+                  type={showNewMemberPassword ? 'text' : 'password'}
+                  value={newMemberPassword}
+                />
+                <button
+                  aria-label={t(showNewMemberPassword ? 'Ocultar contraseña' : 'Mostrar contraseña')}
+                  className="member-create-form__password-toggle"
+                  disabled={createBusy}
+                  onClick={() => setShowNewMemberPassword((visible) => !visible)}
+                  type="button"
+                >
+                  {showNewMemberPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </span>
+            </label>
+            <label className="field">
+              <span>{t('Rol')}</span>
+              <select
+                disabled={createBusy}
+                onChange={(event) => setNewMemberRole(event.target.value === 'admin' ? 'admin' : 'attendant')}
+                value={newMemberRole}
+              >
+                <option value="attendant">{t('Colaborador')}</option>
+                <option value="admin">{t('Administrador')}</option>
+              </select>
+            </label>
+            <button className="button button--primary" disabled={createBusy} type="submit">
+              <UserPlus size={16} />
+              {createBusy ? t('Creando cuenta…') : t('Crear cuenta')}
             </button>
           </form>
 
-          {inviteNotice && <p className="form-message form-message--success" role="status">{inviteNotice}</p>}
-          {membersError && <p className="form-message form-message--error" role="alert">{membersError}</p>}
+          <p className="settings-note">
+            {t('Supabase Auth protege la contraseña; no se muestra después ni se guarda en la lista de miembros. El acceso funciona con correo y contraseña, sin invitación por correo.')}
+          </p>
+          {createNotice && <p className="form-message form-message--success" role="status">{t(createNotice)}</p>}
+          {membersError && <p className="form-message form-message--error" role="alert">{t(membersError)}</p>}
 
           <div className="table-scroll member-list">
             <table>
               <thead>
                 <tr>
-                  <th>Persona</th>
-                  <th>Estado</th>
-                  <th>Rol</th>
-                  <th>Acceso</th>
+                  <th>{t('Persona')}</th>
+                  <th>{t('Estado')}</th>
+                  <th>{t('Rol')}</th>
+                  <th>{t('Acceso')}</th>
                 </tr>
               </thead>
               <tbody>
                 {membersLoading ? (
-                  <tr><td className="table-empty" colSpan={4}>Cargando miembros…</td></tr>
+                  <tr><td className="table-empty" colSpan={4}>{t('Cargando miembros…')}</td></tr>
                 ) : members.length === 0 ? (
-                  <tr><td className="table-empty" colSpan={4}>Todavía no hay miembros para mostrar.</td></tr>
+                  <tr><td className="table-empty" colSpan={4}>{t('Todavía no hay miembros para mostrar.')}</td></tr>
                 ) : members.map((member) => {
                   const isSelf = member.user_id === user?.id
                   const protectedMember = member.is_owner || isSelf
                   const status = !member.invitation_accepted_at
-                    ? 'Invitación pendiente'
+                    ? t('Invitación pendiente')
                     : member.is_active
-                      ? 'Activa'
-                      : 'Desactivada'
+                      ? t('Activa')
+                      : t('Desactivada')
 
                   return (
                     <tr key={member.id}>
                       <td>
                         <span className="member-identity">
                           <strong>{member.full_name}</strong>
-                          <small>{member.email ?? 'Correo no disponible'}</small>
-                          {member.is_owner && <small className="member-owner">Propietario del espacio</small>}
+                          <small>{member.email ?? t('Correo no disponible')}</small>
+                          {member.is_owner && <small className="member-owner">{t('Propietario del espacio')}</small>}
                         </span>
                       </td>
                       <td>
@@ -215,7 +280,7 @@ export function SettingsPage() {
                       </td>
                       <td>
                         <select
-                          aria-label={`Rol de ${member.email ?? member.full_name}`}
+                          aria-label={t('Rol de {name}', { name: member.email ?? member.full_name })}
                           disabled={protectedMember || updatingMemberId === member.id}
                           onChange={(event) => {
                             const role = event.target.value === 'admin' ? 'admin' : 'attendant'
@@ -223,15 +288,15 @@ export function SettingsPage() {
                           }}
                           value={member.role}
                         >
-                          <option value="attendant">Colaborador</option>
-                          <option value="admin">Administrador</option>
+                          <option value="attendant">{t('Colaborador')}</option>
+                          <option value="admin">{t('Administrador')}</option>
                         </select>
                       </td>
                       <td>
                         {protectedMember ? (
-                          <span className="member-protected">{member.is_owner ? 'Siempre activo' : 'Tu cuenta'}</span>
+                          <span className="member-protected">{t(member.is_owner ? 'Siempre activo' : 'Tu cuenta')}</span>
                         ) : !member.invitation_accepted_at ? (
-                          <span className="member-protected">Esperando aceptación</span>
+                          <span className="member-protected">{t('Esperando aceptación')}</span>
                         ) : (
                           <button
                             className={`button button--small ${member.is_active ? 'button--secondary' : 'button--primary'}`}
@@ -240,10 +305,10 @@ export function SettingsPage() {
                             type="button"
                           >
                             {updatingMemberId === member.id
-                              ? 'Guardando…'
+                              ? t('Guardando…')
                               : member.is_active
-                                ? 'Desactivar'
-                                : 'Reactivar'}
+                                ? t('Desactivar')
+                                : t('Reactivar')}
                           </button>
                         )}
                       </td>

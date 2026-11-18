@@ -55,6 +55,5 @@ export type Section =
   | 'new'
   | 'search'
   | 'people'
-  | 'statistics'
   | 'reports'
   | 'settings'

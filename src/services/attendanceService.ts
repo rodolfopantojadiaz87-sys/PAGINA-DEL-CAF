@@ -1,5 +1,4 @@
 import { requireSupabase } from '../lib/supabase'
-import { localDate } from './people'
 import type { ProcessType } from '../types/records'
 import { getSemesterRange } from '../statistics/aggregates'
 
@@ -11,6 +10,7 @@ export interface RegisterSharedAttendanceInput {
   phone: string
   email: string
   process: ProcessType
+  date: string
 }
 
 export async function registerSharedAttendance(
@@ -24,7 +24,7 @@ export async function registerSharedAttendance(
     person_phone: input.phone.trim(),
     person_email: input.email.trim(),
     target_process: input.process,
-    target_attended_at: localDate(),
+    target_attended_at: input.date,
   })
   if (error) throw error
   return data

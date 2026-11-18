@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage'
 import { WorkspaceGatePage } from './pages/WorkspaceGatePage'
 import { signOut } from './services/authService'
 import type { Person, Section } from './types/records'
+import { useI18n } from './i18n'
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const PeoplePage = lazy(() => import('./pages/PeoplePage').then((module) => ({ default: module.PeoplePage })))
@@ -14,9 +15,9 @@ const RegistrationPage = lazy(() => import('./pages/RegistrationPage').then((mod
 const ReportsPage = lazy(() => import('./pages/ReportsPage').then((module) => ({ default: module.ReportsPage })))
 const SearchPage = lazy(() => import('./pages/SearchPage').then((module) => ({ default: module.SearchPage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
-const StatisticsPage = lazy(() => import('./pages/StatisticsPage').then((module) => ({ default: module.StatisticsPage })))
 
 export function WorkspaceApp() {
+  const { t } = useI18n()
   const [section, setSection] = useState<Section>('home')
   const [selectedPerson, setSelectedPerson] = useState<Person>()
   const [signingOut, setSigningOut] = useState(false)
@@ -61,8 +62,6 @@ export function WorkspaceApp() {
         return <SearchPage onSelectPerson={selectPerson} />
       case 'people':
         return <PeoplePage />
-      case 'statistics':
-        return <StatisticsPage />
       case 'reports':
         return <ReportsPage />
       case 'settings':
@@ -84,7 +83,7 @@ export function WorkspaceApp() {
       signingOut={signingOut}
       signOutError={signOutError}
     >
-      <Suspense fallback={<div className="loading-state" role="status">Cargando sección…</div>}>
+      <Suspense fallback={<div className="loading-state" role="status">{t('Cargando sección…')}</div>}>
         {renderPage()}
       </Suspense>
     </AppShell>
@@ -92,17 +91,18 @@ export function WorkspaceApp() {
 }
 
 function App() {
+  const { t } = useI18n()
   const { configured, loading, session, passwordRecovery, invitationAcceptance } = useAuth()
   const { access } = useWorkspace()
 
   if (loading) {
-    return <div className="auth-page"><div className="loading-state" role="status">Verificando sesión…</div></div>
+    return <div className="auth-page"><div className="loading-state" role="status">{t('Verificando sesión…')}</div></div>
   }
 
   if (!configured || !session || passwordRecovery || invitationAcceptance) return <LoginPage />
 
   if (access.status === 'loading' || access.status === 'no-session') {
-    return <div className="auth-page"><div className="loading-state" role="status">Verificando membresía…</div></div>
+    return <div className="auth-page"><div className="loading-state" role="status">{t('Verificando membresía…')}</div></div>
   }
 
   if (access.status !== 'active') return <WorkspaceGatePage />

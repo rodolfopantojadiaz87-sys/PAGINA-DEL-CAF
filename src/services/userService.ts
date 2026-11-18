@@ -10,6 +10,27 @@ export interface WorkspaceUser extends WorkspaceMember {
   account_created_at: string
 }
 
+export async function createWorkspaceUser(
+  fullName: string,
+  email: string,
+  password: string,
+  role: WorkspaceMember['role'],
+): Promise<void> {
+  const { error } = await requireSupabase().functions.invoke('create-user', {
+    body: {
+      full_name: fullName.trim(),
+      email: email.trim(),
+      password,
+      role,
+    },
+  })
+  if (error) {
+    const message = await readFunctionErrorMessage(error.context)
+    if (message) throw new Error(message)
+    throw error
+  }
+}
+
 export async function listWorkspaceUsers(
   workspaceId: string,
 ): Promise<WorkspaceUser[]> {
@@ -56,11 +77,23 @@ export async function updateWorkspaceMember(
   if (error) throw error
 }
 
-export async function inviteWorkspaceUser(
-  email: string,
-): Promise<void> {
-  const { error } = await requireSupabase().functions.invoke('invite-user', {
-    body: { email: email.trim() },
-  })
-  if (error) throw error
+async function readFunctionErrorMessage(context: unknown): Promise<string | undefined> {
+  if (!(context instanceof Response)) return undefined
+
+  let body: unknown
+  try {
+    body = await context.clone().json()
+  } catch {
+    return undefined
+  }
+
+  if (
+    typeof body === 'object' &&
+    body !== null &&
+    'error' in body &&
+    typeof body.error === 'string'
+  ) {
+    return body.error
+  }
+  return undefined
 }

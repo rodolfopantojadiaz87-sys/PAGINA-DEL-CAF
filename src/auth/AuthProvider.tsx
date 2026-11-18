@@ -8,8 +8,11 @@ import type { Session } from '@supabase/supabase-js'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { getCurrentSession, subscribeToAuthChanges } from '../services/authService'
 import { AuthContext, type AuthContextValue } from './authContext'
+import { useI18n } from '../i18n'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n()
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [passwordRecovery, setPasswordRecovery] = useState(false)
@@ -74,10 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return (
       <AuthContext.Provider value={value}>
         <div className="auth-page">
+          <LanguageSwitcher />
           <section className="auth-card" role="alert">
-            <h1>No se pudo verificar la sesión</h1>
-            <p>{error}</p>
-            <p>Comprueba la conexión con Supabase y vuelve a cargar la página.</p>
+            <h1>{t('No se pudo verificar la sesión')}</h1>
+            <p>{t(error)}</p>
+            <p>{t('Comprueba la conexión con Supabase y vuelve a cargar la página.')}</p>
           </section>
         </div>
       </AuthContext.Provider>

@@ -1,23 +1,22 @@
 import {
   ChartNoAxesCombined,
-  FileText,
   Home,
   LogOut,
+  Plus,
   Search,
   Settings,
-  UserRoundPlus,
   UsersRound,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import type { Section } from '../types/records'
+import { getLocale, useI18n } from '../i18n'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 const navigation: { id: Section; label: string; icon: typeof Home }[] = [
   { id: 'home', label: 'Inicio', icon: Home },
-  { id: 'new', label: 'Nuevo registro', icon: UserRoundPlus },
   { id: 'search', label: 'Buscar personas', icon: Search },
   { id: 'people', label: 'Personas registradas', icon: UsersRound },
-  { id: 'statistics', label: 'Estadísticas', icon: ChartNoAxesCombined },
-  { id: 'reports', label: 'Informes semestrales', icon: FileText },
+  { id: 'reports', label: 'Estadísticas e informes', icon: ChartNoAxesCombined },
   { id: 'settings', label: 'Configuración', icon: Settings },
 ]
 
@@ -26,8 +25,7 @@ const mobileLabels: Record<Section, string> = {
   new: 'Nuevo',
   search: 'Buscar',
   people: 'Personas',
-  statistics: 'Estad.',
-  reports: 'Informes',
+  reports: 'Estad. e informes',
   settings: 'Ajustes',
 }
 
@@ -52,6 +50,7 @@ export function AppShell({
   signOutError,
   children,
 }: AppShellProps) {
+  const { language, t } = useI18n()
   const visibleNavigation = canManageWorkspace
     ? navigation
     : navigation.filter((item) => item.id !== 'settings')
@@ -64,12 +63,12 @@ export function AppShell({
         <button className="brand" onClick={() => onNavigate('home')} type="button">
           <span className="brand__mark">RA</span>
           <span className="brand__text">
-            <strong>Atenciones</strong>
-            <small>Registro personal</small>
+            <strong>{t('Atenciones')}</strong>
+            <small>{t('Registro personal')}</small>
           </span>
         </button>
-        <p className="sidebar__label">MENÚ PRINCIPAL</p>
-        <nav className="sidebar__nav" aria-label="Navegación principal">
+        <p className="sidebar__label">{t('MENÚ PRINCIPAL')}</p>
+        <nav className="sidebar__nav" aria-label={t('Navegación principal')}>
           {visibleNavigation.map(({ id, label, icon: Icon }) => (
             <button
               aria-current={section === id ? 'page' : undefined}
@@ -79,51 +78,52 @@ export function AppShell({
               type="button"
             >
               <Icon size={19} strokeWidth={1.8} />
-              <span>{label}</span>
+              <span>{t(label)}</span>
             </button>
           ))}
         </nav>
         <div className="sidebar__footer">
           <span className="privacy-dot" />
-          <span>Espacio compartido protegido</span>
+          <span>{t('Espacio compartido protegido')}</span>
         </div>
       </aside>
       <div className="app-shell__main">
         <header className="topbar">
           <div className="topbar__mobile-brand">
             <span className="brand__mark">RA</span>
-            <strong>Atenciones</strong>
+            <strong>{t('Atenciones')}</strong>
           </div>
-          <span className="topbar__section">{active.label}</span>
+          <span className="topbar__section">{t(section === 'new' ? 'Nuevo caso' : active.label)}</span>
           <span className="topbar__date">
-            {today.toLocaleDateString('es', {
+            {today.toLocaleDateString(getLocale(language), {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
               year: 'numeric',
             })}
           </span>
+          <LanguageSwitcher />
           {userEmail && <span className="topbar__user">{userEmail}</span>}
           {onSignOut && (
             <button
-              aria-label="Cerrar sesión"
+              aria-label={t('Cerrar sesión')}
               className="topbar__signout"
               disabled={signingOut}
               onClick={onSignOut}
-              title="Cerrar sesión"
+              title={t('Cerrar sesión')}
               type="button"
             >
               <LogOut size={17} />
-              <span>{signingOut ? 'Saliendo…' : 'Salir'}</span>
+              <span>{signingOut ? t('Saliendo…') : t('Salir')}</span>
             </button>
           )}
         </header>
-        {signOutError && <p className="form-message form-message--error topbar__error" role="alert">{signOutError}</p>}
+        {signOutError && <p className="form-message form-message--error topbar__error" role="alert">{t(signOutError)}</p>}
         <main className="page-content">{children}</main>
       </div>
       <nav
         className="mobile-nav"
-        aria-label="Navegación móvil"
+        aria-label={t('Navegación móvil')}
         style={{ gridTemplateColumns: `repeat(${visibleNavigation.length}, minmax(0, 1fr))` }}
       >
         {visibleNavigation.map(({ id, icon: Icon }) => (
@@ -135,10 +135,21 @@ export function AppShell({
             type="button"
           >
             <Icon size={20} />
-            <span>{mobileLabels[id]}</span>
+            <span>{t(mobileLabels[id])}</span>
           </button>
         ))}
       </nav>
+      {section !== 'new' && (
+        <button
+          aria-label={t('Nuevo caso')}
+          className="floating-action"
+          onClick={() => onNavigate('new')}
+          type="button"
+        >
+          <Plus size={19} />
+          <span>{t('Nuevo caso')}</span>
+        </button>
+      )}
     </div>
   )
 }

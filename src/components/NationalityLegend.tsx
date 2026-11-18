@@ -1,4 +1,5 @@
 import type { CountItem } from '../statistics/aggregates'
+import { useI18n } from '../i18n'
 
 interface NationalityLegendProps {
   items: CountItem[]
@@ -6,8 +7,9 @@ interface NationalityLegendProps {
 }
 
 export function NationalityLegend({ items, colors }: NationalityLegendProps) {
+  const { t } = useI18n()
   return (
-    <ul className="nationality-legend" aria-label="Leyenda de nacionalidades">
+    <ul className="nationality-legend" aria-label={t('Leyenda de nacionalidades')}>
       {items.map((item) => (
         <li key={item.label}>
           <span

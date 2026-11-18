@@ -3,8 +3,11 @@ import { Building2, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
 import { signOut } from '../services/authService'
+import { useI18n } from '../i18n'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
 export function WorkspaceGatePage() {
+  const { t } = useI18n()
   const { user } = useAuth()
   const { access, refresh } = useWorkspace()
   const [busy, setBusy] = useState(false)
@@ -28,42 +31,40 @@ export function WorkspaceGatePage() {
   const role =
     access.status === 'active'
       ? access.membership.role === 'admin'
-        ? 'Administrador'
-        : 'Colaborador'
+        ? t('Administrador')
+        : t('Colaborador')
       : undefined
 
   return (
     <div className="auth-page">
+      <LanguageSwitcher />
       <section className="auth-card auth-card--notice">
         <span className="auth-card__icon">
           {authorized ? <ShieldCheck size={26} /> : <Building2 size={26} />}
         </span>
-        <p className="auth-card__eyebrow">ESPACIO DE TRABAJO COMPARTIDO</p>
+        <p className="auth-card__eyebrow">{t('ESPACIO DE TRABAJO COMPARTIDO')}</p>
         <h1>
           {authorized
-            ? 'Membresía verificada'
+            ? t('Membresía verificada')
             : access.status === 'error'
-              ? 'No se pudo verificar el acceso'
-              : 'Sin acceso al espacio'}
+              ? t('No se pudo verificar el acceso')
+              : t('Sin acceso al espacio')}
         </h1>
-        {user?.email && <p>Cuenta: <strong>{user.email}</strong></p>}
+        {user?.email && <p>{t('Cuenta:')} <strong>{user.email}</strong></p>}
 
         {authorized && (
           <div className="auth-message" role="status">
-            Rol autorizado: <strong>{role}</strong>. Los registros compartidos
-            todavía no están conectados a la aplicación. Los datos locales
-            permanecen ocultos hasta completar esa integración.
+            {t('Rol autorizado:')} <strong>{role}</strong>. {t('Los registros compartidos todavía no están conectados a la aplicación. Los datos locales permanecen ocultos hasta completar esa integración.')}
           </div>
         )}
         {access.status === 'denied' && (
           <div className="auth-message auth-message--warning" role="alert">
-            Esta cuenta no tiene una membresía activa en el espacio CAF. Pide
-            al administrador que la invite o reactive.
+            {t('Esta cuenta no tiene una membresía activa en el espacio CAF. Pide al administrador que la invite o reactive.')}
           </div>
         )}
         {access.status === 'error' && (
           <div className="auth-message auth-message--warning" role="alert">
-            {access.message}
+            {t(access.message)}
           </div>
         )}
 
@@ -71,11 +72,11 @@ export function WorkspaceGatePage() {
         <div className="workspace-gate__actions">
           {(access.status === 'denied' || access.status === 'error') && (
             <button className="auth-button auth-button--secondary" onClick={refresh} type="button">
-              Volver a comprobar
+              {t('Volver a comprobar')}
             </button>
           )}
           <button className="auth-button" disabled={busy} onClick={() => void handleSignOut()} type="button">
-            {busy ? 'Cerrando sesión…' : 'Cerrar sesión'}
+            {busy ? t('Cerrando sesión…') : t('Cerrar sesión')}
           </button>
         </div>
       </section>

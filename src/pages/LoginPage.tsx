@@ -8,10 +8,13 @@ import {
   updatePassword,
 } from '../services/authService'
 import { useAuth } from '../auth/useAuth'
+import { useI18n } from '../i18n'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 
 type AuthMode = 'sign-in' | 'recovery' | 'update-password'
 
 export function LoginPage() {
+  const { t } = useI18n()
   const { configured, user, passwordRecovery, invitationAcceptance } = useAuth()
   const [mode, setMode] = useState<AuthMode>('sign-in')
   const [email, setEmail] = useState('')
@@ -35,7 +38,7 @@ export function LoginPage() {
         await requestPasswordRecovery(email)
         setNotice('Si la cuenta existe, recibirás un correo con instrucciones para recuperar el acceso.')
       } else if (activeMode === 'update-password') {
-        if (password.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres.')
+        if (password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres.')
         if (password !== confirmation) throw new Error('Las contraseñas no coinciden.')
         if (invitationAcceptance && !fullName.trim()) {
           throw new Error('Escribe tu nombre para completar el perfil.')
@@ -81,20 +84,18 @@ export function LoginPage() {
   if (user && activeMode !== 'update-password') {
     return (
       <div className="auth-page">
+        <LanguageSwitcher />
         <section className="auth-card auth-card--notice">
           <span className="auth-card__icon"><ShieldCheck size={26} /></span>
-          <p className="auth-card__eyebrow">AUTENTICACIÓN COMPLETADA</p>
-          <h1>Conexión al espacio compartido pendiente</h1>
-          <p>Has iniciado sesión como <strong>{user.email}</strong>.</p>
+          <p className="auth-card__eyebrow">{t('AUTENTICACIÓN COMPLETADA')}</p>
+          <h1>{t('Conexión al espacio compartido pendiente')}</h1>
+          <p>{t('Has iniciado sesión como')} <strong>{user.email}</strong>.</p>
           <div className="auth-message" role="status">
-            La autenticación está lista, pero los registros y permisos todavía
-            no están conectados a Supabase. Los registros existentes siguen en
-            este dispositivo y no se muestran para evitar exponerlos a otras
-            cuentas.
+            {t('La autenticación está lista, pero los registros y permisos todavía no están conectados a Supabase. Los registros existentes siguen en este dispositivo y no se muestran para evitar exponerlos a otras cuentas.')}
           </div>
-          {error && <p className="auth-error" role="alert">{error}</p>}
+          {error && <p className="auth-error" role="alert">{t(error)}</p>}
           <button className="auth-button" disabled={busy} onClick={() => void handleSignOut()} type="button">
-            {busy ? 'Cerrando sesión…' : 'Cerrar sesión'}
+            {busy ? t('Cerrando sesión…') : t('Cerrar sesión')}
           </button>
         </section>
       </div>
@@ -104,42 +105,43 @@ export function LoginPage() {
   const isRecovery = activeMode === 'recovery'
   const isPasswordUpdate = activeMode === 'update-password'
   const title = isPasswordUpdate
-    ? 'Crear contraseña nueva'
+    ? t('Crear contraseña nueva')
     : isRecovery
-      ? 'Recuperar acceso'
-      : 'Iniciar sesión'
+      ? t('Recuperar acceso')
+      : t('Iniciar sesión')
 
   return (
     <div className="auth-page">
+      <LanguageSwitcher />
       <section className="auth-card">
         <div className="auth-card__brand">
           <span className="auth-card__icon"><LockKeyhole size={25} /></span>
-          <p className="auth-card__eyebrow">SISTEMA PRIVADO</p>
+          <p className="auth-card__eyebrow">{t('SISTEMA PRIVADO')}</p>
         </div>
         <h1>{title}</h1>
         <p className="auth-card__description">
           {isRecovery
-            ? 'Te enviaremos instrucciones al correo asociado a tu cuenta.'
+            ? t('Te enviaremos instrucciones al correo asociado a tu cuenta.')
             : invitationAcceptance
-              ? 'Completa tu perfil y elige una contraseña segura de al menos 8 caracteres.'
+              ? t('Completa tu perfil y elige una contraseña de al menos 6 caracteres.')
             : isPasswordUpdate
-              ? 'Elige una contraseña segura de al menos 8 caracteres.'
-              : 'Usa las credenciales de tu cuenta autorizada.'}
+              ? t('Elige una contraseña de al menos 6 caracteres.')
+              : t('Usa las credenciales de tu cuenta autorizada.')}
         </p>
 
         {!configured && (
           <div className="auth-message auth-message--warning" role="alert">
-            Supabase todavía no está configurado. Define
+            {t('Supabase todavía no está configurado. Define')}
             {' '}<code>VITE_SUPABASE_URL</code> y
-            {' '}<code>VITE_SUPABASE_PUBLISHABLE_KEY</code> en un archivo
-            <code> .env.local</code> y reinicia Vite.
+            {' '}<code>VITE_SUPABASE_PUBLISHABLE_KEY</code> {t('en un archivo')}
+            <code> .env.local</code> {t('y reinicia Vite.')}
           </div>
         )}
 
         <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
           {!isPasswordUpdate && (
             <label className="auth-field">
-              <span>Correo electrónico</span>
+              <span>{t('Correo electrónico')}</span>
               <span className="auth-field__control">
                 <Mail size={18} />
                 <input
@@ -155,7 +157,7 @@ export function LoginPage() {
           )}
           {invitationAcceptance && (
             <label className="auth-field">
-              <span>Nombre y apellido</span>
+              <span>{t('Nombre y apellido')}</span>
               <input
                 autoComplete="name"
                 disabled={!configured || busy}
@@ -168,11 +170,11 @@ export function LoginPage() {
           )}
           {!isRecovery && (
             <label className="auth-field">
-              <span>{isPasswordUpdate ? 'Contraseña nueva' : 'Contraseña'}</span>
+              <span>{t(isPasswordUpdate ? 'Contraseña nueva' : 'Contraseña')}</span>
               <input
                 autoComplete={isPasswordUpdate ? 'new-password' : 'current-password'}
                 disabled={!configured || busy}
-                minLength={8}
+                minLength={6}
                 onChange={(event) => setPassword(event.target.value)}
                 required
                 type="password"
@@ -182,11 +184,11 @@ export function LoginPage() {
           )}
           {isPasswordUpdate && (
             <label className="auth-field">
-              <span>Repetir contraseña nueva</span>
+              <span>{t('Repetir contraseña nueva')}</span>
               <input
                 autoComplete="new-password"
                 disabled={!configured || busy}
-                minLength={8}
+                minLength={6}
                 onChange={(event) => setConfirmation(event.target.value)}
                 required
                 type="password"
@@ -194,16 +196,16 @@ export function LoginPage() {
               />
             </label>
           )}
-          {error && <p className="auth-error" role="alert">{error}</p>}
-          {notice && <p className="auth-message" role="status">{notice}</p>}
+          {error && <p className="auth-error" role="alert">{t(error)}</p>}
+          {notice && <p className="auth-message" role="status">{t(notice)}</p>}
           <button className="auth-button" disabled={!configured || busy} type="submit">
             {busy
-              ? 'Procesando…'
+              ? t('Procesando…')
               : isRecovery
-                ? 'Enviar instrucciones'
+                ? t('Enviar instrucciones')
                 : isPasswordUpdate
-                  ? 'Actualizar contraseña'
-                  : 'Entrar'}
+                  ? t('Actualizar contraseña')
+                  : t('Entrar')}
           </button>
         </form>
 
@@ -218,20 +220,20 @@ export function LoginPage() {
             }}
             type="button"
           >
-            {isRecovery ? 'Volver al inicio de sesión' : '¿Olvidaste tu contraseña?'}
+            {isRecovery ? t('Volver al inicio de sesión') : t('¿Olvidaste tu contraseña?')}
           </button>
         )}
         {!isRecovery && !isPasswordUpdate && (
           <>
             <p className="auth-card__footnote">
-              Las cuentas son creadas por la administración. No hay registro público.
+              {t('Las cuentas son creadas por la administración. No hay registro público.')}
             </p>
             {import.meta.env.VITE_ACCESS_REQUEST_EMAIL?.trim() ? (
               <a
                 className="auth-link"
-                href={`mailto:${encodeURIComponent(import.meta.env.VITE_ACCESS_REQUEST_EMAIL.trim()).replace(/%40/gi, '@')}?subject=${encodeURIComponent('Solicitud de acceso a Atenciones')}`}
+                href={`mailto:${encodeURIComponent(import.meta.env.VITE_ACCESS_REQUEST_EMAIL.trim()).replace(/%40/gi, '@')}?subject=${encodeURIComponent(t('Solicitud de acceso a Atenciones'))}`}
               >
-                Solicitar acceso
+                {t('Solicitar acceso')}
               </a>
             ) : (
               <>
@@ -240,11 +242,11 @@ export function LoginPage() {
                   onClick={() => setAccessRequestNotice(true)}
                   type="button"
                 >
-                  Solicitar acceso
+                  {t('Solicitar acceso')}
                 </button>
                 {accessRequestNotice && (
                   <p className="auth-card__footnote">
-                    Pide a la persona administradora del espacio que te envíe una invitación a este correo.
+                    {t('Pide a la persona administradora del espacio que te envíe una invitación a este correo.')}
                   </p>
                 )}
               </>

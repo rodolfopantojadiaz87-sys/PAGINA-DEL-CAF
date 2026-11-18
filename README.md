@@ -131,17 +131,17 @@ El proyecto avanza por etapas: estructura y panel; base/formulario; búsqueda e
 historial; estadísticas; informes y PDF; y PWA/offline. La compilación de
 producción y el lint comprueban el código.
 
-## Datos compartidos, acceso e invitaciones Supabase
+## Datos compartidos y administración de acceso Supabase
 
 El diseño inicial de la base de datos compartida, sus roles y permisos RLS está
 en [`docs/SUPABASE.md`](./docs/SUPABASE.md). La migración SQL está en
 [`supabase/migrations/20261110220000_shared_workspace.sql`](./supabase/migrations/20261110220000_shared_workspace.sql).
-La aplicación incluye inicio de sesión, recuperación de contraseña e
-invitaciones privadas. Copia `.env.example` a `.env.local`, define la URL del
-proyecto y la clave publicable, y reinicia Vite. Supabase Auth debe tener
-deshabilitado el registro público. El administrador invita desde
-**Configuración → Miembros del espacio**; el invitado completa el perfil y
-establece su contraseña desde el enlace enviado por correo.
+La aplicación incluye inicio de sesión y recuperación de contraseña. Copia
+`.env.example` a `.env.local`, define la URL del proyecto y la clave publicable,
+y reinicia Vite. Supabase Auth debe tener deshabilitado el registro público. El
+administrador crea colaboradores desde **Configuración → Miembros del espacio**,
+asignándoles nombre, correo, contraseña y rol. Los colaboradores entran con esas
+credenciales; no necesitan invitación por correo.
 
 La app verifica la membresía activa y el rol desde `workspace_members`. El
 directorio, búsqueda, historial, registro, estadísticas e informes consultan la
@@ -150,11 +150,10 @@ servidor. Los registros de Dexie de esta instalación quedan separados. Para la
 configuración, despliegue de la Edge Function y pruebas con cuenta admin y
 colaborador, sigue las instrucciones de [`docs/SUPABASE.md`](./docs/SUPABASE.md).
 
-La Edge Function usa `SUPABASE_SERVICE_ROLE_KEY` sólo en el runtime del
-servidor. No agregues esa clave a variables `VITE_*`, al frontend ni a Git.
-El dominio Vercel no está configurado en el repositorio; copia el origen real
-desde Vercel y configúralo en Supabase Auth → URL Configuration y como
-`APP_SITE_URL` de la función.
+La Edge Function `create-user` se despliega en Supabase y usa
+`SUPABASE_SERVICE_ROLE_KEY` sólo en su runtime. No agregues esa clave a
+variables `VITE_*`, al frontend ni a Git. Vercel, si aloja el sitio, no gestiona
+colaboradores ni recibe sus contraseñas.
 
 La operación transaccional del registro de atenciones está en
 [`supabase/migrations/20261110230000_register_attendance.sql`](./supabase/migrations/20261110230000_register_attendance.sql).

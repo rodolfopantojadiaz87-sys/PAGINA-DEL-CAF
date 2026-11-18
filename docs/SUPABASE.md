@@ -131,79 +131,70 @@ ni desactivar al propietario.
    repositorio, así que debe copiarse del panel; no uses un dominio supuesto.
    Las redirecciones de invitación y recuperación usan el origen actual o
    `APP_SITE_URL`.
-4. Opcionalmente, define `VITE_ACCESS_REQUEST_EMAIL` en `.env.local` con un
-   correo público al que los usuarios puedan solicitar acceso. Si se deja vacío,
-   la pantalla indica que deben contactar a la persona administradora. Reinicia
-   Vite tras cambiar las variables.
+4. En Authentication → Settings, configura la longitud mínima de contraseña
+   como 6 caracteres para que coincida con la aplicación. Opcionalmente, define
+   `VITE_ACCESS_REQUEST_EMAIL` en `.env.local` con un correo público al que los
+   usuarios puedan solicitar acceso. Reinicia Vite tras cambiar las variables.
 
 `src/lib/supabase.ts` crea el cliente tipado y deja que el SDK gestione la
 persistencia y renovación de sesión. `src/pages/LoginPage.tsx` permite iniciar
-sesión, recuperar contraseña y aceptar una invitación completando el nombre y
-la contraseña; no incluye registro público. `.env.local` está excluido por
-`.gitignore`.
+sesión, recuperar contraseña y aceptar invitaciones anteriores; no incluye
+registro público. `.env.local` está excluido por `.gitignore`.
 
-## Invitaciones privadas y administración
+## Administración de colaboradores
 
 1. Asegúrate de que la cuenta inicial sea propietaria y administradora con la
    consulta del apartado anterior. Una migración marca como propietario al
    administrador activo más antiguo que ya exista.
-2. En el proyecto Supabase, configura un proveedor SMTP para Auth → Email si
-   todavía no está habilitado el envío de correos de invitación. El emisor de
-   prueba de Supabase tiene límites y no es adecuado para producción.
-3. Configura la URL de la app en el entorno de servidor de Edge Functions,
-   usando el origen HTTPS exacto del proyecto Vercel (sin inventar rutas):
+2. Despliega la función de administración en Supabase:
 
    ```powershell
-   npx.cmd supabase secrets set APP_SITE_URL=https://DOMINIO-REAL-COPIADO-DE-VERCEL
-   npx.cmd supabase functions deploy invite-user
+   npx.cmd supabase functions deploy create-user
    ```
 
-   En desarrollo local configura `APP_SITE_URL=http://127.0.0.1:5173` y
-   despliega la función en el proyecto vinculado, o prueba con el entorno local
-   de Supabase. Supabase proporciona `SUPABASE_URL` y
-   `SUPABASE_SERVICE_ROLE_KEY` al runtime de Edge Functions. No las copies a
-   archivos `VITE_*`, al navegador, al repositorio ni al chat.
-4. Inicia sesión con una cuenta `admin` y abre **Configuración → Miembros
-   del espacio**. Esta sección no aparece para los attendants. Escribe el correo
-   del colaborador y pulsa **Invitar
-   colaborador**. La invitación crea una membresía `attendant` sin acceso hasta
-   que se acepte el enlace con vencimiento administrado por Supabase Auth. El
-   enlace lleva a un formulario para elegir contraseña y completar el nombre
-   del perfil; al terminar se activa la membresía.
-5. Desde la lista, un administrador puede cambiar el rol o desactivar/reactivar
-   el acceso. La invitación se considera aceptada al completar el perfil y la
-   contraseña. La fila del propietario no se puede cambiar. Desactivar conserva
+   No se necesita SMTP ni `APP_SITE_URL` para crear cuentas. La función corre
+   en Supabase Edge Functions; Vercel, si aloja la interfaz, sólo sirve la app
+   web y no administra colaboradores. Supabase proporciona `SUPABASE_URL` y
+   `SUPABASE_SERVICE_ROLE_KEY` al runtime de funciones. No las copies a
+   variables `VITE_*`, al navegador, al repositorio ni al chat.
+3. Inicia sesión como `admin` y abre **Configuración → Miembros del espacio**.
+   Esta sección no aparece para colaboradores. Completa nombre, correo,
+   contraseña inicial (mínimo 6 caracteres) y rol, y pulsa **Crear cuenta**.
+   La cuenta queda activa de inmediato; el colaborador puede iniciar sesión
+   con ese correo y contraseña, sin abrir un enlace de invitación. Comparte la
+   contraseña por un canal seguro.
+4. Desde la lista, un administrador puede cambiar el rol o desactivar/reactivar
+   el acceso. La fila del propietario no se puede cambiar. Desactivar conserva
    `profiles`, personas y atenciones; no elimines la cuenta de Auth para
    revocar el acceso.
 
-La Edge Function `supabase/functions/invite-user/index.ts` valida el JWT del
-solicitante y comprueba su membresía activa `admin` antes de usar la clave de
-servicio, que sólo existe en el runtime del servidor. No acepta roles ni IDs de
-workspace enviados por el cliente: las invitaciones son siempre para el espacio
-compartido y crean el rol `attendant`.
+La Edge Function `supabase/functions/create-user/index.ts` valida el JWT y
+comprueba la membresía `admin` activa antes de usar la clave de servicio, que
+sólo existe en el runtime de Supabase. Valida nombre, correo, contraseña y rol;
+el ID del espacio es fijo y el cliente no puede solicitar acceso a otro espacio.
+El registro público de Supabase Auth sigue deshabilitado. Cuentas creadas por el
+flujo antiguo de invitación aún pueden completar esa invitación.
 
 ### Prueba manual con dos cuentas
 
-1. Aplica las migraciones, despliega la función, configura SMTP y usa una cuenta
-   administradora que ya pueda entrar al espacio.
-2. Desde **Configuración → Miembros del espacio**, invita una dirección de
-   correo que controles. Antes de aceptar, la fila debe mostrar **Invitación
-   pendiente** y **Colaborador**.
-3. Abre el mensaje de invitación en una ventana privada del navegador. Elige un
-   nombre y contraseña; al terminar, la lista del administrador debe mostrar la
-   cuenta como **Activa**.
-4. Entra como colaborador. Comprueba que puede consultar el registro compartido
+1. Aplica las migraciones, despliega la función y usa una cuenta administradora
+   que ya pueda entrar al espacio.
+2. Desde **Configuración → Miembros del espacio**, crea un colaborador con un
+   correo que controles, contraseña y rol `Colaborador`. La lista debe mostrar
+   la cuenta como **Activa**.
+3. Cierra sesión e inicia como colaborador con el correo y la contraseña
+   asignados. Comprueba que puede consultar el registro compartido
    y que puede crear registros. Intenta editar un registro creado por el admin:
    la interfaz/RLS debe impedirlo. Los datos no deben mezclarse con el IndexedDB
    local de otros dispositivos.
-5. Vuelve a entrar como admin, cambia el rol y prueba desactivar y reactivar al
+4. Vuelve a entrar como admin, cambia el rol y prueba desactivar y reactivar al
    colaborador. Tras desactivarlo, el colaborador debe perder acceso al espacio;
    vuelve a activarlo para recuperar el acceso. Los registros históricos deben
    seguir presentes.
-6. Confirma que el propietario permanece como administrador activo y que el
+5. Confirma que el propietario permanece como administrador activo y que el
    registro público sigue deshabilitado en Authentication → Settings.
 
-Estas pruebas requieren cuentas, correos, SMTP y un proyecto Supabase propios.
+Estas pruebas requieren cuentas y un proyecto Supabase propios.
 No se ejecutaron contra un proyecto remoto desde este entorno.
 
 Si aún no hay una membresía activa, la app bloquea el acceso. Los registros
@@ -264,8 +255,8 @@ ejecutada con los permisos RLS del usuario autenticado.
   personas únicas del semestre en PostgreSQL.
 - `supabase/migrations/20261113230000_private_workspace_invites.sql`: protege
   al propietario, marca invitaciones aceptadas y prohíbe borrar membresías.
-- `supabase/functions/invite-user/index.ts`: valida al administrador e invita
-  desde el servidor con Supabase Auth.
+- `supabase/functions/create-user/index.ts`: valida al administrador y crea
+  cuentas con su rol desde Supabase Auth.
 - `docs/SUPABASE.md`: modelo, decisiones, permisos y procedimiento inicial.
 - `.env.example`: nombres de variables requeridos para conectar el frontend.
 - `src/lib/supabase.ts`, `src/services/authService.ts` y `src/auth/`: cliente
@@ -275,9 +266,9 @@ ejecutada con los permisos RLS del usuario autenticado.
 - `src/services/personService.ts`, `attendanceService.ts` y `sharedData.ts`:
   búsqueda de posibles duplicados, registro y lectura compartida paginada.
 - `src/services/userService.ts` y `src/pages/SettingsPage.tsx`: administración
-  de roles, estado y envío de invitaciones.
+  de cuentas, roles y estado.
 - `src/types/database.types.ts`: tipos TypeScript del esquema Supabase.
 
-El despliegue de migraciones y la función, la configuración SMTP, las URL de
-Auth y las pruebas con dos cuentas requieren el acceso al proyecto Supabase y
-al dominio Vercel reales. No se realizaron desde este entorno.
+El despliegue de migraciones y la función, la configuración de Auth y las
+pruebas con cuenta admin y colaborador requieren acceso al proyecto Supabase.
+No se realizaron desde este entorno.

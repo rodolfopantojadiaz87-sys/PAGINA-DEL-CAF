@@ -1122,29 +1122,6 @@ tbody tr:last-child td {
   background: #edf0ec;
 }
 
-.readonly-field {
-  display: flex;
-  min-height: 42px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 11px;
-  border: 1px solid #e7ebe6;
-  border-radius: 7px;
-  background: #f8f9f7;
-  color: #929b93;
-  font-size: 0.73rem;
-}
-
-.readonly-field__badge {
-  padding: 4px 7px;
-  border-radius: 5px;
-  background: #e9f2ea;
-  color: #54775a;
-  font-size: 0.62rem;
-  font-weight: 620;
-}
-
 .form-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1420,19 +1397,22 @@ tbody tr:last-child td {
   font-size: 0.6rem;
 }
 
-.member-invite-form {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
+.member-create-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 12px;
   padding-bottom: 17px;
   border-bottom: 1px solid #edf0ec;
 }
 
-.member-invite-form .field {
-  width: min(100%, 360px);
+.member-create-form .field {
+  width: 100%;
 }
 
-.member-invite-form .field > input {
+.member-create-form .field > input,
+.member-create-form .field > select {
+  width: 100%;
   min-height: 40px;
   padding: 0 10px;
   border: 1px solid #dfe6de;
@@ -1440,10 +1420,76 @@ tbody tr:last-child td {
   color: #354339;
 }
 
-.member-invite-form .field > input:focus {
+.member-create-form .field > input:focus,
+.member-create-form .field > select:focus {
   border-color: #80a087;
   outline: 0;
   box-shadow: 0 0 0 3px rgb(82 125 93 / 9%);
+}
+
+.member-create-form__password {
+  position: relative;
+  display: flex;
+}
+
+.member-create-form__password > input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 42px 0 10px;
+  border: 1px solid #dfe6de;
+  border-radius: 7px;
+  color: #354339;
+}
+
+.member-create-form__password > input:focus {
+  border-color: #80a087;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgb(82 125 93 / 9%);
+}
+
+.member-create-form__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #768178;
+  cursor: pointer;
+}
+
+.member-create-form__password-toggle:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+}
+
+.language-switcher select {
+  min-height: 34px;
+  padding: 0 25px 0 9px;
+  border: 1px solid #dfe6de;
+  border-radius: 7px;
+  background: #fff;
+  color: #526057;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.auth-page > .language-switcher {
+  position: fixed;
+  z-index: 2;
+  top: 18px;
+  right: 18px;
 }
 
 .member-list {
@@ -1551,6 +1597,38 @@ tbody tr:last-child td {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   clip-path: inset(50%);
+}
+
+.floating-action {
+  position: fixed;
+  right: 28px;
+  bottom: 26px;
+  z-index: 7;
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 19px;
+  border: 0;
+  border-radius: 999px;
+  background: #365d40;
+  box-shadow: 0 8px 22px rgb(31 63 39 / 25%);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 650;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.floating-action:hover {
+  transform: translateY(-2px);
+  background: #2e5037;
+}
+
+.floating-action:focus-visible {
+  outline: 3px solid #9cbea2;
+  outline-offset: 3px;
 }
 
 @media (max-width: 1160px) {
@@ -1784,6 +1862,13 @@ tbody tr:last-child td {
 
   .mobile-nav__item--active span {
     font-weight: 700;
+  }
+
+  .floating-action {
+    right: 16px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    min-height: 48px;
+    padding: 0 16px;
   }
 
   .charts-grid,
@@ -2188,13 +2273,8 @@ tbody tr:last-child td {
     display: none;
   }
 
-  .member-invite-form {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .member-invite-form .field {
-    width: 100%;
+  .member-create-form {
+    grid-template-columns: 1fr;
   }
 
   .topbar__signout {
