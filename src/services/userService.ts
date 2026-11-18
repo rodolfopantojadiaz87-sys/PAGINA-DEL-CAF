@@ -90,7 +90,15 @@ export async function removeWorkspaceMember(
     target_workspace_id: workspaceId,
     target_member_id: memberId,
   })
-  if (error) throw error
+  if (error) {
+    const errorDetails = [
+      error.message,
+      error.details && `Detalle: ${error.details}`,
+      error.hint && `Sugerencia: ${error.hint}`,
+      error.code && `Código: ${error.code}`,
+    ].filter(Boolean)
+    throw new Error(errorDetails.join(' — '))
+  }
 }
 
 async function readFunctionErrorMessage(context: unknown): Promise<string | undefined> {

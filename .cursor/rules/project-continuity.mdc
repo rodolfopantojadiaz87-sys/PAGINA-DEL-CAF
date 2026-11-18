@@ -10,15 +10,16 @@ Al comenzar cada tarea, lee esta sección y revisa `git status` antes de editar.
 ## Último estado conocido (2026-11-17)
 
 - Proyecto React, TypeScript y Vite; backend compartido en Supabase; interfaz en español y portugués.
-- Último commit publicado en `main`: `ab26a08` (`Update project continuity after publishing`); Vercel reportó estado `success`.
+- Último commit publicado en `main`: `b61312c` (`Mejora la baja de colaboradores`); el despliegue de Vercel no se verificó en este cambio.
 - Incluye administración de colaboradores, selector de idioma, botón flotante «Nuevo caso», estadísticas e informes unificados y captura de la fecha de atención (admite fechas pasadas).
 - Las correcciones ortográficas y la capitalización de nombres/nacionalidades se publicaron junto con la gestión de colaboradores en los commits `67234ed` y `66a8487`.
-- La lista de colaboradores permite quitar miembros preservando cuentas y registros históricos mediante la función SQL `remove_workspace_member`; el alta usa la Edge Function `create-user`.
+- La lista de colaboradores permite quitar miembros preservando cuentas y registros históricos mediante la función SQL `remove_workspace_member`; la confirmación de baja ahora usa un diálogo interno y muestra errores del backend. El alta usa la Edge Function `create-user`.
 - Producción Supabase: `create-user` ya está desplegada y la preflight CORS devuelve HTTP 200. La migración `remove_workspace_member` también se aplicó sin contraseña mediante `supabase migration up --remote`; se verificó que el RPC existe, sólo `authenticated` puede ejecutarlo y `anon` no.
-- Frontend publicado en `main` en commits separados para correcciones anteriores y gestión de colaboradores. Se excluyeron los dos snapshots locales `.playwright-mcp`; permanecen intactos y no deben incluirse en futuros commits sin autorización explícita.
+- Se quitó el botón duplicado «Nuevo registro» del panel; el botón flotante de «Nuevo caso» permanece.
+- El último cambio se validó con `npm.cmd run build`, `npm.cmd run lint` y `git diff --check`. Lint sigue mostrando sólo las advertencias de Fast Refresh en `src/i18n.tsx`.
+- Se excluyeron los dos snapshots locales `.playwright-mcp`; permanecen intactos y no deben incluirse en futuros commits sin autorización explícita.
 - Se creó el respaldo local `backup/main-with-playwright-20261117` para conservar la historia anterior sin publicarla. No empujar esa rama.
 - Se conservaron los códigos de proceso históricos almacenados para no afectar registros.
-- `npm.cmd run build` pasa. `npm.cmd run lint` pasa con advertencias de Fast Refresh en `src/i18n.tsx`.
 - No hay cambios de código pendientes; el espacio de trabajo conserva dos snapshots `.playwright-mcp` locales sin seguimiento.
 - No modificar ni incluir archivos `.playwright-mcp` en commits sin autorización.
 - El usuario señaló `.git/COMMIT_EDITMSG`: no editar ese archivo.
