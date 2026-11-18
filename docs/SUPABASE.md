@@ -146,12 +146,16 @@ registro público. `.env.local` está excluido por `.gitignore`.
 1. Asegúrate de que la cuenta inicial sea propietaria y administradora con la
    consulta del apartado anterior. Una migración marca como propietario al
    administrador activo más antiguo que ya exista.
-2. Despliega la función de administración en Supabase:
+2. Aplica la migración de baja de miembros y despliega la función de creación
+   de cuentas en Supabase:
 
    ```powershell
+   npx.cmd supabase db push --remote
    npx.cmd supabase functions deploy create-user
    ```
 
+   Si la CLI solicita la contraseña de la base de datos, introdúcela en la
+   terminal local; no la compartas por el chat.
    No se necesita SMTP ni `APP_SITE_URL` para crear cuentas. La función corre
    en Supabase Edge Functions; Vercel, si aloja la interfaz, sólo sirve la app
    web y no administra colaboradores. Supabase proporciona `SUPABASE_URL` y
@@ -163,17 +167,26 @@ registro público. `.env.local` está excluido por `.gitignore`.
    La cuenta queda activa de inmediato; el colaborador puede iniciar sesión
    con ese correo y contraseña, sin abrir un enlace de invitación. Comparte la
    contraseña por un canal seguro.
-4. Desde la lista, un administrador puede cambiar el rol o desactivar/reactivar
-   el acceso. La fila del propietario no se puede cambiar. Desactivar conserva
-   `profiles`, personas y atenciones; no elimines la cuenta de Auth para
-   revocar el acceso.
+4. Desde la lista, un administrador puede cambiar el rol, desactivar/reactivar
+   o quitar a otro miembro del espacio. Quitar elimina únicamente la
+   membresía: conserva la cuenta de Auth, el perfil y los registros históricos,
+   pero la persona ya no puede acceder a este espacio. El propietario y la
+   propia cuenta no se pueden quitar; el último administrador activo está
+   protegido por un trigger. Desactivar conserva la membresía para poder
+   reactivar el acceso.
+
+   La función SQL `remove_workspace_member` autoriza la operación para un
+   administrador activo y registra la eliminación mediante la auditoría
+   existente de membresías. No se concede permiso directo de borrado a los
+   usuarios autenticados.
 
 La Edge Function `supabase/functions/create-user/index.ts` valida el JWT y
 comprueba la membresía `admin` activa antes de usar la clave de servicio, que
 sólo existe en el runtime de Supabase. Valida nombre, correo, contraseña y rol;
 el ID del espacio es fijo y el cliente no puede solicitar acceso a otro espacio.
-El registro público de Supabase Auth sigue deshabilitado. Cuentas creadas por el
-flujo antiguo de invitación aún pueden completar esa invitación.
+La función usa las cabeceras CORS mantenidas por el SDK de Supabase. El registro
+público de Supabase Auth sigue deshabilitado. Cuentas creadas por el flujo
+antiguo de invitación aún pueden completar esa invitación.
 
 ### Prueba manual con dos cuentas
 
@@ -255,6 +268,8 @@ ejecutada con los permisos RLS del usuario autenticado.
   personas únicas del semestre en PostgreSQL.
 - `supabase/migrations/20261113230000_private_workspace_invites.sql`: protege
   al propietario, marca invitaciones aceptadas y prohíbe borrar membresías.
+- `supabase/migrations/20261117223000_remove_workspace_member.sql`: habilita
+  la baja administrativa auditada de miembros sin borrar perfiles ni registros.
 - `supabase/functions/create-user/index.ts`: valida al administrador y crea
   cuentas con su rol desde Supabase Auth.
 - `docs/SUPABASE.md`: modelo, decisiones, permisos y procedimiento inicial.

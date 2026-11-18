@@ -12,9 +12,13 @@ Al comenzar cada tarea, lee esta sección y revisa `git status` antes de editar.
 - Proyecto React, TypeScript y Vite; backend compartido en Supabase; interfaz en español y portugués.
 - Último commit subido a `main`: `b0c2855` (`Unify reports and support historical cases`).
 - Incluye administración de colaboradores, selector de idioma, botón flotante «Nuevo caso», estadísticas e informes unificados y captura de la fecha de atención (admite fechas pasadas).
-- Trabajo más reciente sin commit: correcciones ortográficas y gramaticales en etiquetas y mensajes; se conservaron los códigos de proceso históricos almacenados.
+- Trabajo más reciente sin commit: correcciones ortográficas y gramaticales; los campos de nombre y nacionalidad capitalizan cada palabra al escribir y editar (`src/utils/textFormatting.ts`).
+- También se mejoró la gestión de colaboradores: el alta muestra un error claro si falta la Edge Function, y el código local de la lista permite quitar miembros preservando sus registros mediante la función SQL `remove_workspace_member`.
+- Producción Supabase: `create-user` ya está desplegada y la preflight CORS devuelve HTTP 200. La migración `remove_workspace_member` también se aplicó sin contraseña mediante `supabase migration up --remote`; se verificó que el RPC existe, sólo `authenticated` puede ejecutarlo y `anon` no.
+- El código de la opción de quitar colaboradores está compilado pero aún no publicado. `main` local está un commit adelante de `origin/main`; ese commit sólo contiene dos archivos `.playwright-mcp`. No empujar ni modificar esos archivos sin autorización explícita.
+- Se conservaron los códigos de proceso históricos almacenados para no afectar registros.
 - `npm.cmd run build` pasa. `npm.cmd run lint` pasa con advertencias de Fast Refresh en `src/i18n.tsx`.
-- Pendiente conocido: desplegar la Edge Function `supabase/functions/create-user` en Supabase.
+- Cambios ortográficos y de capitalización anteriores siguen sin commit; no incluirlos en un commit sin revisar el estado completo.
 - No modificar ni incluir archivos `.playwright-mcp` en commits sin autorización.
 - El usuario señaló `.git/COMMIT_EDITMSG`: no editar ese archivo.
 

@@ -171,6 +171,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      remove_workspace_member: {
+        Args: { target_member_id: string; target_workspace_id: string }
+        Returns: undefined
+      }
       register_attendance: {
         Args: {
           target_workspace_id: string

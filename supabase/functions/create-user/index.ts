@@ -1,10 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+import { corsHeaders } from 'npm:@supabase/supabase-js@^2/cors'
 
 const workspaceId = '11111111-1111-4111-8111-111111111111'
 

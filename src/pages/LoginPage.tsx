@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../auth/useAuth'
 import { useI18n } from '../i18n'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { capitalizeWords } from '../utils/textFormatting'
 
 type AuthMode = 'sign-in' | 'recovery' | 'update-password'
 
@@ -161,7 +162,8 @@ export function LoginPage() {
               <input
                 autoComplete="name"
                 disabled={!configured || busy}
-                onChange={(event) => setFullName(event.target.value)}
+                onChange={(event) => setFullName(capitalizeWords(event.target.value))}
+                autoCapitalize="words"
                 required
                 type="text"
                 value={fullName}

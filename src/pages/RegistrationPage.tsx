@@ -8,6 +8,7 @@ import { findPotentialDuplicates } from '../services/personService'
 import { localDate } from '../services/people'
 import { PROCESS_OPTIONS, type Person } from '../types/records'
 import { getProcessLabel, useI18n } from '../i18n'
+import { capitalizeWords } from '../utils/textFormatting'
 
 interface RegistrationPageProps {
   selectedPerson?: Person
@@ -42,8 +43,8 @@ export function RegistrationPage({
 }: RegistrationPageProps) {
   const [values, setValues] = useState<FormValues>(() => selectedPerson
     ? {
-        name: selectedPerson.name,
-        nationality: selectedPerson.nationality,
+        name: capitalizeWords(selectedPerson.name),
+        nationality: capitalizeWords(selectedPerson.nationality),
         phone: selectedPerson.phone,
         email: selectedPerson.email,
         process: '',
@@ -113,7 +114,8 @@ export function RegistrationPage({
         }
       }
 
-      const personDetails = confirmedDuplicate ?? values
+      const personDetails = confirmedDuplicate ??
+        (selectedPerson && !canEditSelectedPerson ? selectedPerson : values)
       await registerSharedAttendance({
         workspaceId: access.membership.workspace_id,
         name: personDetails.name,
@@ -155,11 +157,11 @@ export function RegistrationPage({
         <div className="form-grid">
           <label className="field field--wide">
             <span>{t('Nombre completo')} <b>*</b></span>
-            <input autoComplete="name" disabled={!canEditSelectedPerson} maxLength={120} onChange={(event) => update('name', event.target.value)} placeholder={t('Ej. María González')} required value={values.name} />
+            <input autoCapitalize="words" autoComplete="name" disabled={!canEditSelectedPerson} maxLength={120} onChange={(event) => update('name', capitalizeWords(event.target.value))} placeholder={t('Ej. María González')} required value={values.name} />
           </label>
           <label className="field">
             <span>{t('Nacionalidad')} <b>*</b></span>
-            <input autoComplete="country-name" disabled={!canEditSelectedPerson} maxLength={80} onChange={(event) => update('nationality', event.target.value)} placeholder={t('Ej. Argentina')} required value={values.nationality} />
+            <input autoCapitalize="words" autoComplete="country-name" disabled={!canEditSelectedPerson} maxLength={80} onChange={(event) => update('nationality', capitalizeWords(event.target.value))} placeholder={t('Ej. Argentina')} required value={values.nationality} />
           </label>
           <label className="field">
             <span>{t('Teléfono')}</span>

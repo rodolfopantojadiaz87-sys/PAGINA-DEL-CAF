@@ -7,6 +7,7 @@ import { SectionTitle } from '../components/SectionTitle'
 import { deleteSharedPerson, getAllSharedPeople, updateSharedPerson } from '../services/personService'
 import { PROCESS_OPTIONS, type Person, type PersonWithHistory } from '../types/records'
 import { getLocale, getProcessLabel, useI18n } from '../i18n'
+import { capitalizeWords } from '../utils/textFormatting'
 
 const blankPerson: Person = { name: '', nationality: '', phone: '', email: '' }
 
@@ -130,7 +131,7 @@ export function PeoplePage() {
                     <td><span className="contact-lines">{person.phone && <span><Phone size={13} />{person.phone}</span>}{person.email && <span><Mail size={13} />{person.email}</span>}</span></td>
                     <td>{person.lastAppointment ? <span className="date-cell"><CalendarDays size={14} />{new Date(`${person.lastAppointment.date}T12:00:00`).toLocaleDateString(getLocale(language))}</span> : '—'}</td>
                     <td><span className="count-badge">{person.appointments.length}</span></td>
-                    <td><div className="table-actions"><button aria-label={t('Ver historial de {name}', { name: person.name })} className="icon-button" onClick={() => setHistoryPerson(person)} title={t('Ver historial')} type="button"><CalendarDays size={17} /></button>{(isAdmin || person.createdBy === user?.id) && <button aria-label={t('Editar {name}', { name: person.name })} className="icon-button" onClick={() => { setEditing({ id: person.id, name: person.name, nationality: person.nationality, phone: person.phone, email: person.email }); setFormError('') }} title={t('Editar')} type="button"><Pencil size={16} /></button>}{isAdmin && <button aria-label={t('Eliminar {name}', { name: person.name })} className="icon-button icon-button--danger" onClick={() => void removePerson(person)} title={t('Eliminar')} type="button"><Trash2 size={16} /></button>}</div></td>
+                    <td><div className="table-actions"><button aria-label={t('Ver historial de {name}', { name: person.name })} className="icon-button" onClick={() => setHistoryPerson(person)} title={t('Ver historial')} type="button"><CalendarDays size={17} /></button>{(isAdmin || person.createdBy === user?.id) && <button aria-label={t('Editar {name}', { name: person.name })} className="icon-button" onClick={() => { setEditing({ id: person.id, name: capitalizeWords(person.name), nationality: capitalizeWords(person.nationality), phone: person.phone, email: person.email }); setFormError('') }} title={t('Editar')} type="button"><Pencil size={16} /></button>}{isAdmin && <button aria-label={t('Eliminar {name}', { name: person.name })} className="icon-button icon-button--danger" onClick={() => void removePerson(person)} title={t('Eliminar')} type="button"><Trash2 size={16} /></button>}</div></td>
                   </tr>
                 ))}
               </tbody>
@@ -150,8 +151,8 @@ export function PeoplePage() {
         <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditing(blankPerson) }} role="presentation">
           <form className="modal-card edit-form" onSubmit={saveEditedPerson}>
             <div className="modal-heading"><div><p className="eyebrow">{t('DATOS PERSONALES')}</p><h2>{t('Editar persona')}</h2></div><button aria-label={t('Cerrar edición')} className="icon-button" onClick={() => setEditing(blankPerson)} type="button"><X size={18} /></button></div>
-            <label className="field"><span>{t('Nombre completo *')}</span><input maxLength={120} onChange={(event) => setEditing({ ...editing, name: event.target.value })} required value={editing.name} /></label>
-            <label className="field"><span>{t('Nacionalidad *')}</span><input maxLength={80} onChange={(event) => setEditing({ ...editing, nationality: event.target.value })} required value={editing.nationality} /></label>
+            <label className="field"><span>{t('Nombre completo *')}</span><input autoCapitalize="words" maxLength={120} onChange={(event) => setEditing((current) => ({ ...current, name: capitalizeWords(event.target.value) }))} required value={editing.name} /></label>
+            <label className="field"><span>{t('Nacionalidad *')}</span><input autoCapitalize="words" maxLength={80} onChange={(event) => setEditing((current) => ({ ...current, nationality: capitalizeWords(event.target.value) }))} required value={editing.nationality} /></label>
             <label className="field"><span>{t('Teléfono')}</span><input maxLength={40} onChange={(event) => setEditing({ ...editing, phone: event.target.value })} type="tel" value={editing.phone} /></label>
             <label className="field"><span>{t('Correo electrónico')}</span><input maxLength={160} onChange={(event) => setEditing({ ...editing, email: event.target.value })} type="email" value={editing.email} /></label>
             {formError && <p className="form-message form-message--error" role="alert">{t(formError)}</p>}

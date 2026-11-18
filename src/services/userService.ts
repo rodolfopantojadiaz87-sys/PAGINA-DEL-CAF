@@ -27,6 +27,11 @@ export async function createWorkspaceUser(
   if (error) {
     const message = await readFunctionErrorMessage(error.context)
     if (message) throw new Error(message)
+    if (error.name === 'FunctionsFetchError') {
+      throw new Error(
+        'No se pudo conectar con Supabase Edge Functions. Verifica que la función create-user esté desplegada en el proyecto de esta aplicación.',
+      )
+    }
     throw error
   }
 }
@@ -77,6 +82,17 @@ export async function updateWorkspaceMember(
   if (error) throw error
 }
 
+export async function removeWorkspaceMember(
+  workspaceId: string,
+  memberId: string,
+): Promise<void> {
+  const { error } = await requireSupabase().rpc('remove_workspace_member', {
+    target_workspace_id: workspaceId,
+    target_member_id: memberId,
+  })
+  if (error) throw error
+}
+
 async function readFunctionErrorMessage(context: unknown): Promise<string | undefined> {
   if (!(context instanceof Response)) return undefined
 
@@ -90,10 +106,10 @@ async function readFunctionErrorMessage(context: unknown): Promise<string | unde
   if (
     typeof body === 'object' &&
     body !== null &&
-    'error' in body &&
-    typeof body.error === 'string'
+    ('error' in body || 'message' in body)
   ) {
-    return body.error
+    const message = 'error' in body ? body.error : body.message
+    if (typeof message === 'string') return message
   }
   return undefined
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Database, Eye, EyeOff, ShieldCheck, UserPlus, UsersRound } from 'lucide-react'
+import { Database, Eye, EyeOff, ShieldCheck, Trash2, UserPlus, UsersRound } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
 import { SectionTitle } from '../components/SectionTitle'
@@ -8,10 +8,12 @@ import { useI18n } from '../i18n'
 import {
   createWorkspaceUser,
   listWorkspaceUsers,
+  removeWorkspaceMember,
   updateWorkspaceMember,
   type WorkspaceUser,
 } from '../services/userService'
 import { SHARED_WORKSPACE_ID } from '../constants/workspace'
+import { capitalizeWords } from '../utils/textFormatting'
 
 export function SettingsPage() {
   const { t } = useI18n()
@@ -29,6 +31,7 @@ export function SettingsPage() {
   const [showNewMemberPassword, setShowNewMemberPassword] = useState(false)
   const [createBusy, setCreateBusy] = useState(false)
   const [createNotice, setCreateNotice] = useState('')
+  const [memberNotice, setMemberNotice] = useState('')
   const [updatingMemberId, setUpdatingMemberId] = useState<string>()
 
   const loadMembers = useCallback(
@@ -130,6 +133,33 @@ export function SettingsPage() {
     }
   }
 
+  async function removeMember(member: WorkspaceUser) {
+    const name = member.email ?? member.full_name
+    if (!window.confirm(t(
+      '¿Quitar a {name} del espacio? Perderá el acceso, pero sus registros históricos se conservarán.',
+      { name },
+    ))) return
+
+    setUpdatingMemberId(member.id)
+    setMembersError('')
+    setMemberNotice('')
+    try {
+      await removeWorkspaceMember(SHARED_WORKSPACE_ID, member.id)
+      setMembers((currentMembers) =>
+        currentMembers.filter(({ id }) => id !== member.id),
+      )
+      setMemberNotice('Se quitó el acceso del espacio. Sus registros históricos se conservaron.')
+    } catch (removeError: unknown) {
+      setMembersError(
+        removeError instanceof Error
+          ? removeError.message
+          : 'No se pudo quitar el colaborador.',
+      )
+    } finally {
+      setUpdatingMemberId(undefined)
+    }
+  }
+
   return (
     <div className="page-stack page-stack--narrow">
       <SectionTitle
@@ -174,7 +204,8 @@ export function SettingsPage() {
               <input
                 autoComplete="name"
                 disabled={createBusy}
-                onChange={(event) => setNewMemberName(event.target.value)}
+                onChange={(event) => setNewMemberName(capitalizeWords(event.target.value))}
+                autoCapitalize="words"
                 maxLength={120}
                 placeholder={t('Nombre del colaborador')}
                 required
@@ -258,6 +289,7 @@ export function SettingsPage() {
                 ) : members.map((member) => {
                   const isSelf = member.user_id === user?.id
                   const protectedMember = member.is_owner || isSelf
+                  const memberName = member.email ?? member.full_name
                   const status = !member.invitation_accepted_at
                     ? t('Invitación pendiente')
                     : member.is_active
@@ -295,21 +327,35 @@ export function SettingsPage() {
                       <td>
                         {protectedMember ? (
                           <span className="member-protected">{t(member.is_owner ? 'Siempre activo' : 'Tu cuenta')}</span>
-                        ) : !member.invitation_accepted_at ? (
-                          <span className="member-protected">{t('Esperando aceptación')}</span>
                         ) : (
-                          <button
-                            className={`button button--small ${member.is_active ? 'button--secondary' : 'button--primary'}`}
-                            disabled={updatingMemberId === member.id}
-                            onClick={() => void changeMember(member, { is_active: !member.is_active })}
-                            type="button"
-                          >
-                            {updatingMemberId === member.id
-                              ? t('Guardando…')
-                              : member.is_active
-                                ? t('Desactivar')
-                                : t('Reactivar')}
-                          </button>
+                          <div className="table-actions">
+                            {!member.invitation_accepted_at ? (
+                              <span className="member-protected">{t('Esperando aceptación')}</span>
+                            ) : (
+                              <button
+                                className={`button button--small ${member.is_active ? 'button--secondary' : 'button--primary'}`}
+                                disabled={updatingMemberId === member.id}
+                                onClick={() => void changeMember(member, { is_active: !member.is_active })}
+                                type="button"
+                              >
+                                {updatingMemberId === member.id
+                                  ? t('Guardando…')
+                                  : member.is_active
+                                    ? t('Desactivar')
+                                    : t('Reactivar')}
+                              </button>
+                            )}
+                            <button
+                              aria-label={t('Quitar a {name} del espacio', { name: memberName })}
+                              className="icon-button icon-button--danger"
+                              disabled={updatingMemberId === member.id}
+                              onClick={() => void removeMember(member)}
+                              title={t('Quitar colaborador')}
+                              type="button"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -318,6 +364,7 @@ export function SettingsPage() {
               </tbody>
             </table>
           </div>
+          {memberNotice && <p className="form-message form-message--success" role="status">{t(memberNotice)}</p>}
         </section>
       )}
     </div>
