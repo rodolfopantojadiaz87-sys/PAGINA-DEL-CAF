@@ -1,0 +1,527 @@
+- generic:
+  - generic [aria-hidden]:
+    - generic:
+      - generic:
+        - generic:
+          - link:
+            - /url: "#main"
+            - generic: Skip to content
+        - generic:
+          - banner:
+            - generic:
+              - generic:
+                - link:
+                  - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+                  - generic: Back to organization home
+                - generic:
+                  - generic:
+                    - link:
+                      - /url: /dashboard/org/hrzndhubhjalwmkhtutn
+                      - generic: rodolfopantojadiaz87-sys's Org
+                      - generic: Free
+                    - button
+                  - generic:
+                    - generic:
+                      - link:
+                        - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                        - generic: CRAF (Centro de Registro de Ayuda a la Familia)
+                      - button
+                    - generic:
+                      - link:
+                        - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                        - generic: main
+                        - generic: Production
+                      - button
+                - generic:
+                  - button:
+                    - generic: Connect
+              - generic:
+                - button:
+                  - generic: Feedback
+                - generic:
+                  - button:
+                    - generic:
+                      - paragraph: Search...
+                    - generic [aria-hidden]:
+                      - generic: Ctrl K
+                  - button:
+                    - generic: Help
+                  - generic:
+                    - button:
+                      - generic: Advisor Center
+                  - button:
+                    - generic: SQL Editor
+                  - button:
+                    - generic: AI Assistant
+                - button
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - navigation:
+                    - generic:
+                      - list:
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/editor
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/sql
+                    - generic:
+                      - list:
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/database/schemas
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/users
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/storage/files
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/functions
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/compute
+                            - generic: Compute
+                            - generic: New
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/realtime/inspector
+                    - generic:
+                      - list:
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/advisors/health
+                            - generic: Advisors
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/observability
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/logs
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/integrations
+                    - generic:
+                      - list:
+                        - listitem:
+                          - link:
+                            - /url: /dashboard/project/rfehzxbhjdyganhzovvc/settings/general
+                - generic:
+                  - generic:
+                    - button
+          - generic:
+            - generic:
+              - generic:
+                - main:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic:
+                                - heading [level=4]: Authentication
+                              - generic:
+                                - generic:
+                                  - menu:
+                                    - list:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: Manage
+                                            - generic:
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/users
+                                                - menuitem:
+                                                  - generic: Users
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/oauth-apps
+                                                - menuitem:
+                                                  - generic: OAuth Apps
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: Notifications
+                                            - generic:
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/templates
+                                                - menuitem:
+                                                  - generic: Emails
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: Configuration
+                                            - generic:
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/database/policies
+                                                - menuitem:
+                                                  - generic: Policies
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/providers
+                                                - menuitem:
+                                                  - generic: Sign In / Providers
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/passkeys
+                                                - menuitem:
+                                                  - generic:
+                                                    - generic:
+                                                      - generic:
+                                                        - generic: Passkeys
+                                                        - generic: Beta
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/oauth-server
+                                                - menuitem:
+                                                  - generic:
+                                                    - generic:
+                                                      - generic:
+                                                        - generic: OAuth Server
+                                                        - generic: Beta
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/sessions
+                                                - menuitem:
+                                                  - generic: Sessions
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/rate-limits
+                                                - menuitem:
+                                                  - generic: Rate Limits
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/mfa
+                                                - menuitem:
+                                                  - generic: Multi-Factor
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/url-configuration
+                                                - menuitem:
+                                                  - generic: URL Configuration
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/protection
+                                                - menuitem:
+                                                  - generic: Attack Protection
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/hooks
+                                                - menuitem:
+                                                  - generic:
+                                                    - generic:
+                                                      - generic:
+                                                        - generic: Auth Hooks
+                                                        - generic: Beta
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/audit-logs
+                                                - menuitem:
+                                                  - generic: Audit Logs
+                                              - link:
+                                                - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/performance
+                                                - menuitem:
+                                                  - generic: Performance
+                      - separator [disabled]
+                      - generic:
+                        - generic:
+                          - main:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - generic:
+                                          - heading [level=1]: Sign In / Providers
+                                          - paragraph: Configure authentication providers and login methods for your users
+                                - navigation:
+                                  - menu:
+                                    - listitem:
+                                      - link:
+                                        - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/providers
+                                        - text: Supabase Auth
+                                    - listitem:
+                                      - link:
+                                        - /url: /dashboard/project/rfehzxbhjdyganhzovvc/auth/third-party
+                                        - text: Third-Party Auth
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - heading [level=2]: User Signups
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - switch
+                                                - checkbox [aria-hidden]
+                                              - generic:
+                                                - generic: Allow new users to sign up
+                                                - generic: If this is disabled, new users will not be able to sign up to your application
+                                        - generic:
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - switch
+                                                - checkbox [aria-hidden]
+                                              - generic:
+                                                - generic: Allow manual linking
+                                                - generic:
+                                                  - text: Enable
+                                                  - link:
+                                                    - /url: https://supabase.com/docs/guides/auth/auth-identity-linking#manual-linking-beta
+                                                    - text: manual linking APIs
+                                                  - text: for your project
+                                        - generic:
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - switch
+                                                - checkbox [aria-hidden]
+                                              - generic:
+                                                - generic: Allow anonymous sign-ins
+                                                - generic:
+                                                  - text: Enable
+                                                  - link:
+                                                    - /url: https://supabase.com/docs/guides/auth/auth-anonymous
+                                                    - text: anonymous sign-ins
+                                                  - text: for your project
+                                        - generic:
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - switch [checked]
+                                                - checkbox [checked] [aria-hidden]
+                                              - generic:
+                                                - generic: Confirm email
+                                                - generic: Users will need to confirm their email address before signing in for the first time
+                                        - generic:
+                                          - button [disabled]:
+                                            - generic: Save changes
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - heading [level=2]: Auth Providers
+                                        - generic: Authenticate your users through a suite of providers and login methods
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - button:
+                                          - generic: Email
+                                          - generic: Enabled
+                                        - button:
+                                          - generic: Phone
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: SAML 2.0
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Web3 Wallet
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Apple
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Azure
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Bitbucket
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Discord
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Facebook
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Figma
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: GitHub
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: GitLab
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Google
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Kakao
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: KeyCloak
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: LinkedIn (OIDC)
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Notion
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Twitch
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: X / Twitter (OAuth 2.0)
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Twitter (Deprecated)
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Slack (OIDC)
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Slack (Deprecated)
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Spotify
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: WorkOS
+                                          - generic: Disabled
+                                        - button:
+                                          - generic: Zoom
+                                          - generic: Disabled
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - generic:
+                                          - heading [level=2]: Custom Providers
+                                          - generic: New
+                                        - generic: Configure OAuth/OIDC providers for this project using your own issuer or endpoints.
+                                      - generic:
+                                        - link:
+                                          - /url: https://supabase.com/docs/guides/auth/custom-oauth-providers
+                                          - generic: Docs
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - generic:
+                                          - group:
+                                            - textbox:
+                                              - /placeholder: Search custom providers
+                                            - group
+                                          - button:
+                                            - generic: Provider Type
+                                          - button:
+                                            - generic: Status
+                                        - generic:
+                                          - button:
+                                            - generic: New Provider
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic:
+                                              - table:
+                                                - rowgroup:
+                                                  - row:
+                                                    - columnheader:
+                                                      - button: Name
+                                                    - columnheader:
+                                                      - button: Identifier
+                                                    - columnheader:
+                                                      - button: Type
+                                                    - columnheader: Enabled
+                                                    - columnheader
+                                                - rowgroup:
+                                                  - row:
+                                                    - cell:
+                                                      - paragraph: No custom providers found
+  - region "Notifications alt+T"
+  - dialog "Email" [ref=f3e1023]:
+    - generic [ref=f3e1024]:
+      - img "Email auth icon" [ref=f3e1025]
+      - heading "Email" [level=2] [ref=f3e1026]
+    - generic [ref=f3e1027]:
+      - generic [ref=f3e1030]:
+        - generic [ref=f3e1031]: Enable email provider
+        - generic [ref=f3e1034]:
+          - generic [ref=f3e1035]:
+            - switch "Enable email provider" [checked] [active] [ref=f3e1036] [cursor=pointer]
+            - checkbox [checked] [aria-hidden]
+          - paragraph [ref=f3e1040]: Allow email-based sign up and log in for your application.
+      - generic [ref=f3e1043]:
+        - generic [ref=f3e1044]: Secure email change
+        - generic [ref=f3e1047]:
+          - generic [ref=f3e1048]:
+            - switch "Secure email change" [checked] [ref=f3e1049] [cursor=pointer]
+            - checkbox [checked] [aria-hidden]
+          - paragraph [ref=f3e1053]: Users will be required to confirm any email change on both the old email address and new email address. If disabled, only the new email is required to confirm.
+      - generic [ref=f3e1056]:
+        - generic [ref=f3e1057]: Secure password change
+        - generic [ref=f3e1060]:
+          - generic [ref=f3e1061]:
+            - switch "Secure password change" [ref=f3e1062] [cursor=pointer]
+            - checkbox [aria-hidden]
+          - paragraph [ref=f3e1066]: Users will need to be recently logged in to change their password without requiring reauthentication. (A user is considered recently logged in if the session was created within the last 24 hours.) If disabled, a user can change their password at any time.
+      - generic [ref=f3e1069]:
+        - generic [ref=f3e1070]: Require current password when updating
+        - generic [ref=f3e1073]:
+          - generic [ref=f3e1074]:
+            - switch "Require current password when updating" [ref=f3e1075] [cursor=pointer]
+            - checkbox [aria-hidden]
+          - paragraph [ref=f3e1079]:
+            - text: Requires that the user supplies their current password when changing their password.
+            - link "Learn more" [ref=f3e1080] [cursor=pointer]:
+              - /url: https://supabase.com/docs/guides/auth/password-security#require-current-password-when-changing
+            - text: .
+      - generic [ref=f3e1083]:
+        - generic [ref=f3e1084]: Prevent use of leaked passwords
+        - generic [ref=f3e1087]:
+          - generic [ref=f3e1088]:
+            - switch "Prevent use of leaked passwords" [ref=f3e1089] [cursor=pointer]
+            - checkbox [aria-hidden]
+          - paragraph [ref=f3e1093]:
+            - text: Rejects the use of known or easy to guess passwords on sign up or password change. Powered by the HaveIBeenPwned.org Pwned Passwords API.
+            - link "Learn more" [ref=f3e1094] [cursor=pointer]:
+              - /url: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+            - text: Only available on
+            - link "Pro plan" [ref=f3e1095] [cursor=pointer]:
+              - /url: /dashboard/org/hrzndhubhjalwmkhtutn/billing?panel=subscriptionPlan
+            - text: and above.
+      - generic [ref=f3e1098]:
+        - generic [ref=f3e1099]: Minimum password length
+        - generic [ref=f3e1102]:
+          - group [ref=f3e1104]:
+            - spinbutton "Minimum password length" [ref=f3e1105]: "6"
+            - group [ref=f3e1106]: characters
+          - paragraph [ref=f3e1109]: Passwords shorter than this value will be rejected as weak. Minimum 6 characters, though 8 or more is recommended.
+      - generic [ref=f3e1112]:
+        - generic [ref=f3e1113]: Password requirements
+        - generic [ref=f3e1116]:
+          - generic [ref=f3e1117]:
+            - combobox "Password requirements" [ref=f3e1118] [cursor=pointer]:
+              - generic: Select an option
+            - combobox [aria-hidden] [ref=f3e1121]
+          - generic [ref=f3e1122]: Passwords that do not have at least one of each will be rejected as weak.
+      - generic [ref=f3e1126]:
+        - generic [ref=f3e1127]: Enable magic links and email OTP
+        - generic [ref=f3e1130]:
+          - generic [ref=f3e1131]:
+            - switch "Enable magic links and email OTP" [checked] [ref=f3e1132] [cursor=pointer]
+            - checkbox [checked] [aria-hidden]
+          - paragraph [ref=f3e1136]: Allow users to sign in with a magic link or a one-time password sent to their email. Passwords and other methods are not affected.
+      - generic [ref=f3e1139]:
+        - generic [ref=f3e1140]: Email OTP expiration
+        - generic [ref=f3e1143]:
+          - group [ref=f3e1145]:
+            - spinbutton "Email OTP expiration" [ref=f3e1146]: "3600"
+            - group [ref=f3e1147]: seconds
+          - paragraph [ref=f3e1150]: Duration before an email OTP / link expires.
+      - generic [ref=f3e1153]:
+        - generic [ref=f3e1154]: Email OTP length
+        - generic [ref=f3e1157]:
+          - group [ref=f3e1159]:
+            - spinbutton "Email OTP length" [ref=f3e1160]: "8"
+            - group [ref=f3e1161]: digits
+          - paragraph [ref=f3e1164]: Number of digits in the email OTP.
+    - generic [ref=f3e1166]:
+      - link "Docs" [ref=f3e1167] [cursor=pointer]:
+        - /url: https://supabase.com/docs/guides/auth/passwords
+      - generic [ref=f3e1172]:
+        - button "Cancel" [ref=f3e1173] [cursor=pointer]
+        - button "Save" [disabled]
+    - button "Close" [ref=f3e1175]
