@@ -34,7 +34,7 @@ export async function registerAppointment(
 ): Promise<number> {
   return database.transaction('rw', database.people, database.appointments, async () => {
     if (typeof input.personId === 'string') {
-      throw new Error('Los identificadores compartidos sólo se pueden guardar en Supabase.')
+      throw new Error('Los identificadores compartidos solo se pueden guardar en Supabase.')
     }
     let person = input.personId
       ? await database.people.get(input.personId)
@@ -88,7 +88,7 @@ export async function registerAppointment(
       await database.people.update(person.id, personData)
       personId = person.id
     } else if (person?.id !== undefined) {
-      throw new Error('Los identificadores compartidos sólo se pueden guardar en Supabase.')
+      throw new Error('Los identificadores compartidos solo se pueden guardar en Supabase.')
     } else {
       const newId = await database.people.add(personData)
       if (typeof newId !== 'number') {
@@ -121,7 +121,7 @@ export async function savePerson(person: Person): Promise<void> {
 
 export async function deletePerson(personId: string | number): Promise<void> {
   if (typeof personId !== 'number') {
-    throw new Error('Los identificadores compartidos sólo se pueden eliminar en Supabase.')
+    throw new Error('Los identificadores compartidos solo se pueden eliminar en Supabase.')
   }
   await database.transaction('rw', database.people, database.appointments, async () => {
     await database.appointments.where('personId').equals(personId).delete()

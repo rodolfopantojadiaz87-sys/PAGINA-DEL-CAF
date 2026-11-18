@@ -35,7 +35,7 @@ export function useNationalityColors(labels: string[]): {
           setError(
             caught instanceof Error
               ? caught.message
-              : 'No se pudieron guardar los colores de nacionalidad.',
+              : 'No se pudieron guardar los colores de las nacionalidades.',
           )
         }
       },

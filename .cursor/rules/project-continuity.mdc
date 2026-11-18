@@ -1,0 +1,23 @@
+---
+description: Revisa y actualiza el punto de continuidad del proyecto
+alwaysApply: true
+---
+
+# Continuidad del proyecto
+
+Al comenzar cada tarea, lee esta sección y revisa `git status` antes de editar. Conserva los cambios existentes que no correspondan a la tarea.
+
+## Último estado conocido (2026-11-17)
+
+- Proyecto React, TypeScript y Vite; backend compartido en Supabase; interfaz en español y portugués.
+- Último commit subido a `main`: `b0c2855` (`Unify reports and support historical cases`).
+- Incluye administración de colaboradores, selector de idioma, botón flotante «Nuevo caso», estadísticas e informes unificados y captura de la fecha de atención (admite fechas pasadas).
+- Trabajo más reciente sin commit: correcciones ortográficas y gramaticales en etiquetas y mensajes; se conservaron los códigos de proceso históricos almacenados.
+- `npm.cmd run build` pasa. `npm.cmd run lint` pasa con advertencias de Fast Refresh en `src/i18n.tsx`.
+- Pendiente conocido: desplegar la Edge Function `supabase/functions/create-user` en Supabase.
+- No modificar ni incluir archivos `.playwright-mcp` en commits sin autorización.
+- El usuario señaló `.git/COMMIT_EDITMSG`: no editar ese archivo.
+
+## Al terminar una tarea
+
+Actualiza este resumen con el último commit, los cambios pendientes y el resultado de las validaciones. Mantén este archivo breve y no registres credenciales ni datos personales.

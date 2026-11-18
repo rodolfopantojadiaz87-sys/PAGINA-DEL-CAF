@@ -77,7 +77,7 @@ export function ReportsPage() {
             workspaceId,
             year,
             semester,
-            error: caught instanceof Error ? caught.message : 'No se pudo contar las personas distintas del período.',
+            error: caught instanceof Error ? caught.message : 'No se pudo contar el número de personas distintas del período.',
           })
         }
       },

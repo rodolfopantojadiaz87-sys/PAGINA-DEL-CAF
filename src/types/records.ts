@@ -1,11 +1,12 @@
+// Son identificadores históricos persistidos; las etiquetas visibles se corrigen en getProcessLabel.
 export const PROCESS_OPTIONS = [
   'RESIDENCIA',
-  'CAMBIO DE ENDEREZO',
-  'DESARCHIVAMENTO',
+  'CAMBIO DE DIRECCION',
+  'DESARCHIVAR',
   'CPF',
   'RNM',
   'RENOVACION',
-  'ELABORACION DE CURRICULON',
+  'ELABORACION DE CURRICULUM',
 ] as const
 
 export type ProcessType = (typeof PROCESS_OPTIONS)[number]
