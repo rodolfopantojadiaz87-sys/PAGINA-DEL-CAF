@@ -10,6 +10,7 @@ Al comenzar cada tarea, lee esta sección y revisa `git status` antes de editar.
 ## Último estado conocido (2026-11-18)
 
 - Proyecto React, TypeScript y Vite; backend compartido en Supabase; interfaz en español y portugués.
+- La corrección definitiva de la baja quedó versionada en `9cf3b88` y subida a `main`.
 - El último cambio de interfaz publicado en Vercel fue `6aa7708` (`Expone errores al quitar colaboradores`); la corrección actual modifica sólo el trigger de Supabase.
 - Incluye administración de colaboradores, selector de idioma, botón flotante «Nuevo caso», estadísticas e informes unificados y captura de la fecha de atención (admite fechas pasadas).
 - Las correcciones ortográficas y la capitalización de nombres/nacionalidades se publicaron junto con la gestión de colaboradores en los commits `67234ed` y `66a8487`.
@@ -23,7 +24,7 @@ Al comenzar cada tarea, lee esta sección y revisa `git status` antes de editar.
 - Se excluyeron los dos snapshots locales `.playwright-mcp`; permanecen intactos y no deben incluirse en futuros commits sin autorización explícita.
 - Se creó el respaldo local `backup/main-with-playwright-20261117` para conservar la historia anterior sin publicarla. No empujar esa rama.
 - Se conservaron los códigos de proceso históricos almacenados para no afectar registros.
-- El árbol de trabajo contiene la migración correctiva y esta actualización de continuidad; conserva dos snapshots `.playwright-mcp` locales sin seguimiento.
+- La migración correctiva y este estado de continuidad están versionados; el árbol quedó limpio tras el push. Se conservan dos snapshots `.playwright-mcp` locales sin seguimiento.
 - No modificar ni incluir archivos `.playwright-mcp` en commits sin autorización.
 - El usuario señaló `.git/COMMIT_EDITMSG`: no editar ese archivo.
 
