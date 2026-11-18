@@ -7,20 +7,23 @@ alwaysApply: true
 
 Al comenzar cada tarea, lee esta sección y revisa `git status` antes de editar. Conserva los cambios existentes que no correspondan a la tarea.
 
-## Último estado conocido (2026-11-17)
+## Último estado conocido (2026-11-18)
 
 - Proyecto React, TypeScript y Vite; backend compartido en Supabase; interfaz en español y portugués.
-- Último commit publicado en `main`: `b61312c` (`Mejora la baja de colaboradores`); el despliegue de Vercel no se verificó en este cambio.
+- El último cambio de interfaz publicado en Vercel fue `6aa7708` (`Expone errores al quitar colaboradores`); la corrección actual modifica sólo el trigger de Supabase.
 - Incluye administración de colaboradores, selector de idioma, botón flotante «Nuevo caso», estadísticas e informes unificados y captura de la fecha de atención (admite fechas pasadas).
 - Las correcciones ortográficas y la capitalización de nombres/nacionalidades se publicaron junto con la gestión de colaboradores en los commits `67234ed` y `66a8487`.
-- La lista de colaboradores permite quitar miembros preservando cuentas y registros históricos mediante la función SQL `remove_workspace_member`; la confirmación de baja ahora usa un diálogo interno y muestra errores del backend. El alta usa la Edge Function `create-user`.
+- La baja usa un diálogo interno y la RPC `remove_workspace_member`; conserva cuentas y registros históricos. Antes del arreglo, producción devolvía `42501 Workspace ownership cannot be changed by a workspace member`.
+- Causa identificada: `protect_workspace_owner()` comparaba `NEW.is_owner` con `OLD.is_owner` también en `DELETE`; como `NEW` no aplica en esa operación, el trigger bloqueaba cualquier baja. La migración `20261118120000_fix_workspace_owner_delete_guard.sql` limita esa protección a `UPDATE` y mantiene protegido al propietario.
+- La migración correctiva se aplicó al Supabase de producción y quedó confirmada en el historial remoto. Tras aplicar el cambio, se quitó el acceso del colaborador autorizado; la app confirmó que sus registros históricos se conservaron y, después de recargar, ya no aparece en la lista.
+- El alta usa la Edge Function `create-user`.
 - Producción Supabase: `create-user` ya está desplegada y la preflight CORS devuelve HTTP 200. La migración `remove_workspace_member` también se aplicó sin contraseña mediante `supabase migration up --remote`; se verificó que el RPC existe, sólo `authenticated` puede ejecutarlo y `anon` no.
 - Se quitó el botón duplicado «Nuevo registro» del panel; el botón flotante de «Nuevo caso» permanece.
-- El último cambio se validó con `npm.cmd run build`, `npm.cmd run lint` y `git diff --check`. Lint sigue mostrando sólo las advertencias de Fast Refresh en `src/i18n.tsx`.
+- La migración correctiva se validó con `npm.cmd run build`, `npm.cmd run lint` y `git diff --check`; lint mantiene sólo las advertencias previas de Fast Refresh en `src/i18n.tsx`. `supabase db lint` no pudo conectar porque no hay una base local escuchando en `127.0.0.1:54322`; la aplicación remota de la migración y la baja se verificaron en producción.
 - Se excluyeron los dos snapshots locales `.playwright-mcp`; permanecen intactos y no deben incluirse en futuros commits sin autorización explícita.
 - Se creó el respaldo local `backup/main-with-playwright-20261117` para conservar la historia anterior sin publicarla. No empujar esa rama.
 - Se conservaron los códigos de proceso históricos almacenados para no afectar registros.
-- No hay cambios de código pendientes; el espacio de trabajo conserva dos snapshots `.playwright-mcp` locales sin seguimiento.
+- El árbol de trabajo contiene la migración correctiva y esta actualización de continuidad; conserva dos snapshots `.playwright-mcp` locales sin seguimiento.
 - No modificar ni incluir archivos `.playwright-mcp` en commits sin autorización.
 - El usuario señaló `.git/COMMIT_EDITMSG`: no editar ese archivo.
 
