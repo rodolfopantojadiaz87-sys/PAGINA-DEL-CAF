@@ -15,20 +15,22 @@ type CompletedWorkspaceCheck = {
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  // El id es estable; el objeto `user` cambia en cada renovación del token.
+  const userId = user?.id
   const [completedCheck, setCompletedCheck] = useState<CompletedWorkspaceCheck>()
   const [refreshVersion, setRefreshVersion] = useState(0)
   const refresh = useCallback(() => setRefreshVersion((version) => version + 1), [])
 
   useEffect(() => {
-    if (!user) return
+    if (!userId) return
 
     let active = true
 
-    void getWorkspaceMembership(user.id)
+    void getWorkspaceMembership(userId)
       .then((membership) => {
         if (!active) return
         setCompletedCheck({
-          userId: user.id,
+          userId,
           refreshVersion,
           access: membership
             ? { status: 'active', membership }
@@ -37,42 +39,52 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       })
       .catch((error: unknown) => {
         if (!active) return
-        setCompletedCheck({
-          userId: user.id,
-          refreshVersion,
-          access: {
-            status: 'error',
-            message:
-              error instanceof Error
-                ? error.message
-                : 'No se pudo verificar la membresía del espacio de trabajo.',
-          },
-        })
+        setCompletedCheck((previous) =>
+          // Un fallo de red al volver a la pestaña no debe expulsar a quien ya tenía acceso.
+          previous?.userId === userId && previous.access.status === 'active'
+            ? { ...previous, refreshVersion }
+            : {
+                userId,
+                refreshVersion,
+                access: {
+                  status: 'error',
+                  message:
+                    error instanceof Error
+                      ? error.message
+                      : 'No se pudo verificar la membresía del espacio de trabajo.',
+                },
+              },
+        )
       })
 
+    return () => {
+      active = false
+    }
+  }, [refreshVersion, userId])
+
+  useEffect(() => {
+    if (!userId) return
     const recheckWhenVisible = () => {
       if (document.visibilityState === 'visible') refresh()
     }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', recheckWhenVisible)
-
     return () => {
-      active = false
       window.removeEventListener('focus', refresh)
       document.removeEventListener('visibilitychange', recheckWhenVisible)
     }
-  }, [refresh, refreshVersion, user])
+  }, [refresh, userId])
 
-  const access = useMemo<WorkspaceAccessState>(
-    () =>
-      !user
-        ? { status: 'no-session' }
-        : completedCheck?.userId === user.id &&
-            completedCheck.refreshVersion === refreshVersion
-          ? completedCheck.access
-          : { status: 'loading' },
-    [completedCheck, refreshVersion, user],
-  )
+  const access = useMemo<WorkspaceAccessState>(() => {
+    if (!userId) return { status: 'no-session' }
+    if (completedCheck?.userId !== userId) return { status: 'loading' }
+    if (completedCheck.refreshVersion === refreshVersion) return completedCheck.access
+    // Mientras se vuelve a comprobar, se mantiene el acceso activo para no desmontar
+    // la aplicación (y perder formularios a medio llenar) cada vez que se cambia de pestaña.
+    return completedCheck.access.status === 'active'
+      ? completedCheck.access
+      : { status: 'loading' }
+  }, [completedCheck, refreshVersion, userId])
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({ access, refresh }),

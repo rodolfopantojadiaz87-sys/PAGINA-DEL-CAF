@@ -167,10 +167,6 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
-      accept_workspace_invitation: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       remove_workspace_member: {
         Args: { target_member_id: string; target_workspace_id: string }
         Returns: undefined

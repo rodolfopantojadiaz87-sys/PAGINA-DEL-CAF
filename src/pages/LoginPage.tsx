@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { LockKeyhole, Mail, ShieldCheck } from 'lucide-react'
+import { LockKeyhole, Mail } from 'lucide-react'
 import {
-  completeInvitedProfile,
+  initialAuthRedirect,
   requestPasswordRecovery,
   signInWithEmail,
   signOut,
@@ -10,23 +10,22 @@ import {
 import { useAuth } from '../auth/useAuth'
 import { useI18n } from '../i18n'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
-import { capitalizeWords } from '../utils/textFormatting'
 
 type AuthMode = 'sign-in' | 'recovery' | 'update-password'
 
 export function LoginPage() {
   const { t } = useI18n()
-  const { configured, user, passwordRecovery, invitationAcceptance } = useAuth()
+  const { configured, user, passwordRecovery } = useAuth()
   const [mode, setMode] = useState<AuthMode>('sign-in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
-  const [fullName, setFullName] = useState('')
   const [accessRequestNotice, setAccessRequestNotice] = useState(false)
-  const [error, setError] = useState<string>()
+  const [error, setError] = useState<string | undefined>(initialAuthRedirect.error ?? undefined)
   const [notice, setNotice] = useState<string>()
   const [busy, setBusy] = useState(false)
-  const activeMode = invitationAcceptance || passwordRecovery ? 'update-password' : mode
+  // Crear contraseña solo tiene sentido con la sesión temporal que abre el enlace del correo.
+  const activeMode = passwordRecovery && user ? 'update-password' : mode
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -41,15 +40,10 @@ export function LoginPage() {
       } else if (activeMode === 'update-password') {
         if (password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres.')
         if (password !== confirmation) throw new Error('Las contraseñas no coinciden.')
-        if (invitationAcceptance && !fullName.trim()) {
-          throw new Error('Escribe tu nombre para completar el perfil.')
-        }
         await updatePassword(password)
-        if (invitationAcceptance) await completeInvitedProfile(fullName)
         await signOut()
         setPassword('')
         setConfirmation('')
-        setFullName('')
         setMode('sign-in')
         setNotice('Contraseña actualizada. Ya puedes iniciar sesión.')
       } else {
@@ -82,27 +76,6 @@ export function LoginPage() {
     }
   }
 
-  if (user && activeMode !== 'update-password') {
-    return (
-      <div className="auth-page">
-        <LanguageSwitcher />
-        <section className="auth-card auth-card--notice">
-          <span className="auth-card__icon"><ShieldCheck size={26} /></span>
-          <p className="auth-card__eyebrow">{t('AUTENTICACIÓN COMPLETADA')}</p>
-          <h1>{t('Conexión al espacio compartido pendiente')}</h1>
-          <p>{t('Has iniciado sesión como')} <strong>{user.email}</strong>.</p>
-          <div className="auth-message" role="status">
-            {t('La autenticación está lista, pero los registros y permisos todavía no están conectados a Supabase. Los registros existentes siguen en este dispositivo y no se muestran para evitar exponerlos a otras cuentas.')}
-          </div>
-          {error && <p className="auth-error" role="alert">{t(error)}</p>}
-          <button className="auth-button" disabled={busy} onClick={() => void handleSignOut()} type="button">
-            {busy ? t('Cerrando sesión…') : t('Cerrar sesión')}
-          </button>
-        </section>
-      </div>
-    )
-  }
-
   const isRecovery = activeMode === 'recovery'
   const isPasswordUpdate = activeMode === 'update-password'
   const title = isPasswordUpdate
@@ -123,8 +96,6 @@ export function LoginPage() {
         <p className="auth-card__description">
           {isRecovery
             ? t('Te enviaremos instrucciones al correo asociado a tu cuenta.')
-            : invitationAcceptance
-              ? t('Completa tu perfil y elige una contraseña de al menos 6 caracteres.')
             : isPasswordUpdate
               ? t('Elige una contraseña de al menos 6 caracteres.')
               : t('Usa las credenciales de tu cuenta autorizada.')}
@@ -154,20 +125,6 @@ export function LoginPage() {
                   value={email}
                 />
               </span>
-            </label>
-          )}
-          {invitationAcceptance && (
-            <label className="auth-field">
-              <span>{t('Nombre y apellido')}</span>
-              <input
-                autoComplete="name"
-                disabled={!configured || busy}
-                onChange={(event) => setFullName(capitalizeWords(event.target.value))}
-                autoCapitalize="words"
-                required
-                type="text"
-                value={fullName}
-              />
             </label>
           )}
           {!isRecovery && (
@@ -225,6 +182,11 @@ export function LoginPage() {
             {isRecovery ? t('Volver al inicio de sesión') : t('¿Olvidaste tu contraseña?')}
           </button>
         )}
+        {isPasswordUpdate && (
+          <button className="auth-link" disabled={busy} onClick={() => void handleSignOut()} type="button">
+            {t('Cancelar y volver al inicio de sesión')}
+          </button>
+        )}
         {!isRecovery && !isPasswordUpdate && (
           <>
             <p className="auth-card__footnote">
@@ -248,7 +210,7 @@ export function LoginPage() {
                 </button>
                 {accessRequestNotice && (
                   <p className="auth-card__footnote">
-                    {t('Pide a la persona administradora del espacio que te envíe una invitación a este correo.')}
+                    {t('Pide a la persona administradora del espacio que cree tu cuenta con este correo.')}
                   </p>
                 )}
               </>

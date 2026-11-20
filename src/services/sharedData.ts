@@ -1,6 +1,6 @@
 import { requireSupabase } from '../lib/supabase'
 import type { Database } from '../types/database.types'
-import type { Appointment, Person, PersonWithHistory, ProcessType } from '../types/records'
+import { normalizeProcess, type Appointment, type Person, type PersonWithHistory } from '../types/records'
 import { sortHistory } from './people'
 
 type PersonRow = Database['public']['Tables']['persons']['Row']
@@ -33,7 +33,7 @@ function mapAttendance(
     id: row.id,
     personId: row.person_id,
     date: row.attended_at,
-    process: row.process as ProcessType,
+    process: normalizeProcess(row.process),
     createdBy: row.created_by,
     creatorName: profile?.full_name ?? profile?.email ?? 'Colaborador',
   }

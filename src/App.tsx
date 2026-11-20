@@ -92,14 +92,14 @@ export function WorkspaceApp() {
 
 function App() {
   const { t } = useI18n()
-  const { configured, loading, session, passwordRecovery, invitationAcceptance } = useAuth()
+  const { configured, loading, session, passwordRecovery } = useAuth()
   const { access } = useWorkspace()
 
   if (loading) {
     return <div className="auth-page"><div className="loading-state" role="status">{t('Verificando sesión…')}</div></div>
   }
 
-  if (!configured || !session || passwordRecovery || invitationAcceptance) return <LoginPage />
+  if (!configured || !session || passwordRecovery) return <LoginPage />
 
   if (access.status === 'loading' || access.status === 'no-session') {
     return <div className="auth-page"><div className="loading-state" role="status">{t('Verificando membresía…')}</div></div>

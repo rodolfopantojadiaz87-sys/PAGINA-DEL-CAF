@@ -41,6 +41,7 @@ export function ReportsPage() {
   const [year, setYear] = useState(currentDate.getFullYear())
   const [semester, setSemester] = useState<1 | 2>(currentDate.getMonth() < 6 ? 1 : 2)
   const [shareError, setShareError] = useState('')
+  const [shareNotice, setShareNotice] = useState('')
   const [distinctPeopleResult, setDistinctPeopleResult] = useState<{
     workspaceId: string
     year: number
@@ -100,44 +101,48 @@ export function ReportsPage() {
   const processes = summary.processes.map(({ label, count }) => ({ name: getProcessLabel(label, language), cantidad: count }))
   const period = semester === 1 ? t('enero a junio') : t('julio a diciembre')
 
+  async function createReportFile(): Promise<File> {
+    if (currentDistinctResult?.count === undefined) {
+      throw new Error('El total de personas distintas del período aún no está disponible.')
+    }
+    const { getReportFile } = await import('../pdf/semesterReport')
+    const reportColors = await ensureNationalityColors(
+      summary.nationalities.map(({ label }) => label),
+    )
+    return getReportFile(summary, reportColors, language)
+  }
+
+  function saveFile(file: File) {
+    const url = URL.createObjectURL(file)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = file.name
+    link.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
   async function shareReport() {
     setShareError('')
+    setShareNotice('')
     try {
-      if (currentDistinctResult?.count === undefined) {
-        throw new Error('El total de personas distintas del período aún no está disponible.')
-      }
-      const { getReportFile } = await import('../pdf/semesterReport')
-      const reportColors = await ensureNationalityColors(
-        summary.nationalities.map(({ label }) => label),
-      )
-      const file = getReportFile(summary, reportColors, language)
+      const file = await createReportFile()
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ title: t('Informe semestral de atenciones'), files: [file] })
       } else {
-        await downloadReport()
-        setShareError('El PDF se descargó. Adjunta ese archivo en WhatsApp o en tu correo.')
+        saveFile(file)
+        setShareNotice('El PDF se descargó. Adjunta ese archivo en WhatsApp o en tu correo.')
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') setShareError(error.message)
+      if (error instanceof Error && error.name === 'AbortError') return
+      setShareError(error instanceof Error ? error.message : 'No se pudo generar el PDF.')
     }
   }
 
   async function downloadReport() {
+    setShareError('')
+    setShareNotice('')
     try {
-      if (currentDistinctResult?.count === undefined) {
-        throw new Error('El total de personas distintas del período aún no está disponible.')
-      }
-      const { getReportFile } = await import('../pdf/semesterReport')
-      const reportColors = await ensureNationalityColors(
-        summary.nationalities.map(({ label }) => label),
-      )
-      const file = getReportFile(summary, reportColors, language)
-      const url = URL.createObjectURL(file)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = file.name
-      link.click()
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      saveFile(await createReportFile())
     } catch (error) {
       setShareError(error instanceof Error ? error.message : 'No se pudo generar el PDF.')
     }
@@ -201,7 +206,8 @@ export function ReportsPage() {
             </>
           )}
         </div>
-        {shareError && <p className="form-message form-message--error" role="status">{t(shareError)}</p>}
+        {shareError && <p className="form-message form-message--error" role="alert">{t(shareError)}</p>}
+        {shareNotice && <p className="form-message form-message--success" role="status">{t(shareNotice)}</p>}
       </div>
     </div>
   )

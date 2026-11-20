@@ -6,7 +6,11 @@ import {
 } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { isSupabaseConfigured } from '../lib/supabase'
-import { getCurrentSession, subscribeToAuthChanges } from '../services/authService'
+import {
+  getCurrentSession,
+  initialAuthRedirect,
+  subscribeToAuthChanges,
+} from '../services/authService'
 import { AuthContext, type AuthContextValue } from './authContext'
 import { useI18n } from '../i18n'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
@@ -15,8 +19,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { t } = useI18n()
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(isSupabaseConfigured)
-  const [passwordRecovery, setPasswordRecovery] = useState(false)
-  const [invitationAcceptance, setInvitationAcceptance] = useState(isInvitationLink)
+  const [passwordRecovery, setPasswordRecovery] = useState(
+    () => initialAuthRedirect.type === 'recovery' && !initialAuthRedirect.error,
+  )
   const [error, setError] = useState<string>()
 
   useEffect(() => {
@@ -30,11 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(nextSession)
       setLoading(false)
       setError(undefined)
+      // Supabase también emite SIGNED_IN al volver a la pestaña; no debe cancelar
+      // la recuperación, o el usuario entraría sin haber creado la contraseña nueva.
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true)
-      if (event === 'SIGNED_IN') setPasswordRecovery(false)
       if (event === 'SIGNED_OUT') {
         setPasswordRecovery(false)
-        setInvitationAcceptance(false)
       }
     })
 
@@ -68,9 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       user: session?.user ?? null,
       passwordRecovery,
-      invitationAcceptance,
     }),
-    [invitationAcceptance, loading, passwordRecovery, session],
+    [loading, passwordRecovery, session],
   )
 
   if (error) {
@@ -82,6 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             <h1>{t('No se pudo verificar la sesión')}</h1>
             <p>{t(error)}</p>
             <p>{t('Comprueba la conexión con Supabase y vuelve a cargar la página.')}</p>
+            <button className="auth-button" onClick={() => window.location.reload()} type="button">
+              {t('Reintentar')}
+            </button>
           </section>
         </div>
       </AuthContext.Provider>
@@ -89,10 +96,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-function isInvitationLink(): boolean {
-  const hashParams = new URLSearchParams(window.location.hash.slice(1))
-  const queryParams = new URLSearchParams(window.location.search)
-  return hashParams.get('type') === 'invite' || queryParams.get('type') === 'invite'
 }

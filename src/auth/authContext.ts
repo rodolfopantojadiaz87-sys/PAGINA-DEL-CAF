@@ -7,7 +7,6 @@ export interface AuthContextValue {
   session: Session | null
   user: User | null
   passwordRecovery: boolean
-  invitationAcceptance: boolean
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
