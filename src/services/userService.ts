@@ -15,7 +15,7 @@ export async function createWorkspaceUser(
   email: string,
   password: string,
   role: WorkspaceMember['role'],
-): Promise<void> {
+): Promise<'created' | 'existing-account'> {
   const { error } = await requireSupabase().functions.invoke('create-user', {
     body: {
       full_name: fullName.trim(),
@@ -25,14 +25,27 @@ export async function createWorkspaceUser(
     },
   })
   if (error) {
-    const message = await readFunctionErrorMessage(error.context)
-    if (message) throw new Error(message)
-    if (error.name === 'FunctionsFetchError') {
-      throw new Error(
-        'No se pudo conectar con Supabase Edge Functions. Verifica que la función create-user esté desplegada en el proyecto de esta aplicación.',
-      )
-    }
-    throw error
+    const details = await readFunctionError(error.context)
+    if (details.code === 'ACCOUNT_ALREADY_EXISTS') return 'existing-account'
+    throwFunctionError(error, details.message)
+  }
+  return 'created'
+}
+
+export async function linkExistingWorkspaceUser(
+  email: string,
+  role: WorkspaceMember['role'],
+): Promise<void> {
+  const { error } = await requireSupabase().functions.invoke('create-user', {
+    body: {
+      action: 'link-existing',
+      email: email.trim(),
+      role,
+    },
+  })
+  if (error) {
+    const details = await readFunctionError(error.context)
+    throwFunctionError(error, details.message)
   }
 }
 
@@ -101,23 +114,39 @@ export async function removeWorkspaceMember(
   }
 }
 
-async function readFunctionErrorMessage(context: unknown): Promise<string | undefined> {
-  if (!(context instanceof Response)) return undefined
+async function readFunctionError(
+  context: unknown,
+): Promise<{ code?: string; message?: string }> {
+  if (!(context instanceof Response)) return {}
 
   let body: unknown
   try {
     body = await context.clone().json()
   } catch {
-    return undefined
+    return {}
   }
 
-  if (
-    typeof body === 'object' &&
-    body !== null &&
-    ('error' in body || 'message' in body)
-  ) {
-    const message = 'error' in body ? body.error : body.message
-    if (typeof message === 'string') return message
+  if (typeof body !== 'object' || body === null) return {}
+  const error = 'error' in body ? body.error : undefined
+  const message = 'message' in body ? body.message : undefined
+  const code = 'code' in body ? body.code : undefined
+  return {
+    code: typeof code === 'string' ? code : undefined,
+    message:
+      typeof error === 'string'
+        ? error
+        : typeof message === 'string'
+          ? message
+          : undefined,
   }
-  return undefined
+}
+
+function throwFunctionError(error: { name: string }, message?: string): never {
+  if (message) throw new Error(message)
+  if (error.name === 'FunctionsFetchError') {
+    throw new Error(
+      'No se pudo conectar con Supabase Edge Functions. Verifica que la función create-user esté desplegada en el proyecto de esta aplicación.',
+    )
+  }
+  throw error
 }

@@ -60,22 +60,128 @@ Deno.serve(async (request: Request) => {
     typeof body === 'object' && body !== null
       ? body as Record<string, unknown>
       : {}
+  const action = input.action ?? 'create'
   const fullName = typeof input.full_name === 'string' ? input.full_name.trim() : ''
   const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ''
   const password = typeof input.password === 'string' ? input.password : ''
   const role = input.role
 
-  if (fullName.length < 1 || fullName.length > 120) {
-    return jsonResponse({ error: 'Escribe un nombre de entre 1 y 120 caracteres.' }, 400)
-  }
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return jsonResponse({ error: 'Escribe un correo electrónico válido.' }, 400)
   }
-  if (password.length < 6 || password.length > 72) {
-    return jsonResponse({ error: 'La contraseña debe tener entre 6 y 72 caracteres.' }, 400)
-  }
   if (role !== 'admin' && role !== 'attendant') {
     return jsonResponse({ error: 'Selecciona un rol válido.' }, 400)
+  }
+
+  if (action === 'link-existing') {
+    let existingUser: Awaited<ReturnType<typeof findAuthUserByEmail>>
+    try {
+      existingUser = await findAuthUserByEmail(supabase, email)
+    } catch (lookupError) {
+      console.error(
+        'No se pudo buscar la cuenta existente:',
+        lookupError instanceof Error ? lookupError.message : lookupError,
+      )
+      return jsonResponse({ error: 'No se pudo verificar la cuenta existente.' }, 500)
+    }
+    if (!existingUser) {
+      return jsonResponse(
+        { error: 'No se encontró una cuenta registrada con ese correo.' },
+        404,
+      )
+    }
+    if (!existingUser.email_confirmed_at) {
+      return jsonResponse(
+        { error: 'La cuenta todavía no confirmó su correo. Completa primero la invitación o verificación pendiente.' },
+        409,
+      )
+    }
+
+    const { data: existingMembership, error: existingMembershipError } =
+      await supabase
+        .from('workspace_members')
+        .select('id, is_active, invitation_accepted_at')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', existingUser.id)
+        .maybeSingle()
+    if (existingMembershipError) {
+      console.error(
+        'No se pudo consultar la membresía de la cuenta existente:',
+        existingMembershipError.message,
+      )
+      return jsonResponse({ error: 'No se pudo verificar la membresía existente.' }, 500)
+    }
+    if (existingMembership?.is_active) {
+      return jsonResponse(
+        {
+          error: 'Esta cuenta ya tiene acceso al espacio. Administra su rol desde la lista de miembros.',
+          code: 'ALREADY_MEMBER',
+        },
+        409,
+      )
+    }
+
+    const profileName =
+      typeof existingUser.user_metadata?.full_name === 'string' &&
+      existingUser.user_metadata.full_name.trim()
+        ? existingUser.user_metadata.full_name.trim()
+        : email.split('@')[0]
+    const { error: profileError } = await supabase.from('profiles').upsert(
+      {
+        id: existingUser.id,
+        full_name: profileName,
+        email,
+      },
+      { onConflict: 'id', ignoreDuplicates: true },
+    )
+    if (profileError) {
+      console.error(
+        'No se pudo verificar el perfil de la cuenta existente:',
+        profileError.message,
+      )
+      return jsonResponse({ error: 'No se pudo preparar el perfil de la cuenta.' }, 500)
+    }
+
+    const acceptedAt =
+      existingMembership?.invitation_accepted_at ?? new Date().toISOString()
+    const { error: membershipError } = existingMembership
+      ? await supabase
+        .from('workspace_members')
+        .update({
+          role,
+          is_active: true,
+          invitation_accepted_at: acceptedAt,
+        })
+        .eq('id', existingMembership.id)
+      : await supabase.from('workspace_members').insert({
+        workspace_id: workspaceId,
+        user_id: existingUser.id,
+        role,
+        is_active: true,
+        invitation_accepted_at: acceptedAt,
+      })
+    if (membershipError) {
+      console.error(
+        'No se pudo vincular la cuenta existente:',
+        membershipError.message,
+      )
+      return jsonResponse(
+        { error: 'No se pudo asignar la cuenta al espacio. Contacta al administrador técnico.' },
+        500,
+      )
+    }
+
+    return jsonResponse({ linked: true }, 200)
+  }
+
+  if (action !== 'create') {
+    return jsonResponse({ error: 'La operación solicitada no es válida.' }, 400)
+  }
+  if (fullName.length < 1 || fullName.length > 120) {
+    return jsonResponse({ error: 'Escribe un nombre de entre 1 y 120 caracteres.' }, 400)
+  }
+  if (password.length < 6 || password.length > 72) {
+    return jsonResponse({ error: 'La contraseña debe tener entre 6 y 72 caracteres.' }, 400)
   }
 
   const { data: created, error: createError } =
@@ -86,6 +192,29 @@ Deno.serve(async (request: Request) => {
       user_metadata: { full_name: fullName },
     })
   if (createError || !created.user) {
+    const indicatesDuplicateAccount =
+      createError?.status === 422 ||
+      /already (been )?registered|already exists/i.test(createError?.message ?? '')
+    if (indicatesDuplicateAccount) {
+      try {
+        const existingUser = await findAuthUserByEmail(supabase, email)
+        if (existingUser) {
+          return jsonResponse(
+            {
+              error: 'Esta cuenta ya existe en Supabase. Puedes vincularla al espacio sin cambiar su contraseña.',
+              code: 'ACCOUNT_ALREADY_EXISTS',
+            },
+            409,
+          )
+        }
+      } catch (lookupError) {
+        console.error(
+          'No se pudo comprobar si la cuenta ya existe:',
+          lookupError instanceof Error ? lookupError.message : lookupError,
+        )
+        return jsonResponse({ error: 'No se pudo verificar el estado de la cuenta.' }, 500)
+      }
+    }
     console.error('Supabase no pudo crear la cuenta:', createError?.message)
     return jsonResponse(
       { error: createError?.message ?? 'No se pudo crear la cuenta.' },
@@ -114,6 +243,23 @@ Deno.serve(async (request: Request) => {
 
   return jsonResponse({ created: true }, 200)
 })
+
+async function findAuthUserByEmail(
+  supabase: ReturnType<typeof createClient>,
+  email: string,
+) {
+  const perPage = 1000
+  for (let page = 1; ; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage })
+    if (error) throw error
+
+    const match = data.users.find(
+      (user) => user.email?.toLowerCase() === email,
+    )
+    if (match) return match
+    if (data.users.length < perPage) return null
+  }
+}
 
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(body), {

@@ -1170,6 +1170,19 @@ tbody tr:last-child td {
   color: #426e4a;
 }
 
+.notice--warning {
+  flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid #eadfbe;
+  background: #fbf7eb;
+  color: #6e5c34;
+}
+
+.notice--warning p {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
 .notice svg {
   flex: 0 0 auto;
   margin-top: 1px;

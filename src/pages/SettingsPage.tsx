@@ -7,6 +7,7 @@ import { useAttendanceData } from '../hooks/useAttendanceData'
 import { useI18n } from '../i18n'
 import {
   createWorkspaceUser,
+  linkExistingWorkspaceUser,
   listWorkspaceUsers,
   removeWorkspaceMember,
   updateWorkspaceMember,
@@ -31,6 +32,7 @@ export function SettingsPage() {
   const [showNewMemberPassword, setShowNewMemberPassword] = useState(false)
   const [createBusy, setCreateBusy] = useState(false)
   const [createNotice, setCreateNotice] = useState('')
+  const [existingAccountEmail, setExistingAccountEmail] = useState('')
   const [memberNotice, setMemberNotice] = useState('')
   const [updatingMemberId, setUpdatingMemberId] = useState<string>()
   const [memberToRemove, setMemberToRemove] = useState<WorkspaceUser | null>(null)
@@ -87,17 +89,23 @@ export function SettingsPage() {
     setCreateNotice('')
     setMembersError('')
     try {
-      await createWorkspaceUser(
+      const result = await createWorkspaceUser(
         newMemberName,
         newMemberEmail,
         newMemberPassword,
         newMemberRole,
       )
+      if (result === 'existing-account') {
+        setExistingAccountEmail(newMemberEmail.trim())
+        setNewMemberPassword('')
+        return
+      }
       setNewMemberName('')
       setNewMemberEmail('')
       setNewMemberPassword('')
       setNewMemberRole('attendant')
       setShowNewMemberPassword(false)
+      setExistingAccountEmail('')
       setCreateNotice('Cuenta creada y activa. Comparte las credenciales con la persona por un canal seguro.')
       await refreshMembers()
     } catch (createError: unknown) {
@@ -105,6 +113,31 @@ export function SettingsPage() {
         createError instanceof Error
           ? createError.message
           : 'No se pudo crear la cuenta.',
+      )
+    } finally {
+      setCreateBusy(false)
+    }
+  }
+
+  async function handleLinkExistingMember() {
+    setCreateBusy(true)
+    setCreateNotice('')
+    setMembersError('')
+    try {
+      await linkExistingWorkspaceUser(existingAccountEmail, newMemberRole)
+      setNewMemberName('')
+      setNewMemberEmail('')
+      setNewMemberPassword('')
+      setNewMemberRole('attendant')
+      setShowNewMemberPassword(false)
+      setExistingAccountEmail('')
+      setCreateNotice('Cuenta existente vinculada y activa. La persona puede ingresar con su contraseña actual.')
+      await refreshMembers()
+    } catch (linkError: unknown) {
+      setMembersError(
+        linkError instanceof Error
+          ? linkError.message
+          : 'No se pudo vincular la cuenta existente.',
       )
     } finally {
       setCreateBusy(false)
@@ -200,55 +233,63 @@ export function SettingsPage() {
           </div>
 
           <form className="member-create-form" onSubmit={(event) => void handleCreateMember(event)}>
-            <label className="field">
-              <span>{t('Nombre y apellido')}</span>
-              <input
-                autoComplete="name"
-                disabled={createBusy}
-                onChange={(event) => setNewMemberName(capitalizeWords(event.target.value))}
-                autoCapitalize="words"
-                maxLength={120}
-                placeholder={t('Nombre del colaborador')}
-                required
-                type="text"
-                value={newMemberName}
-              />
-            </label>
+            {!existingAccountEmail && (
+              <label className="field">
+                <span>{t('Nombre y apellido')}</span>
+                <input
+                  autoComplete="name"
+                  disabled={createBusy}
+                  onChange={(event) => setNewMemberName(capitalizeWords(event.target.value))}
+                  autoCapitalize="words"
+                  maxLength={120}
+                  placeholder={t('Nombre del colaborador')}
+                  required
+                  type="text"
+                  value={newMemberName}
+                />
+              </label>
+            )}
             <label className="field">
               <span>{t('Correo electrónico')}</span>
               <input
                 autoComplete="email"
                 disabled={createBusy}
-                onChange={(event) => setNewMemberEmail(event.target.value)}
+                onChange={(event) => {
+                  setNewMemberEmail(event.target.value)
+                  setExistingAccountEmail('')
+                  setCreateNotice('')
+                }}
                 placeholder={t('nombre@ejemplo.com')}
                 required
                 type="email"
                 value={newMemberEmail}
               />
             </label>
-            <label className="field">
-              <span>{t('Contraseña inicial')}</span>
-              <span className="member-create-form__password">
-                <input
-                  autoComplete="new-password"
-                  disabled={createBusy}
-                  minLength={6}
-                  onChange={(event) => setNewMemberPassword(event.target.value)}
-                  required
-                  type={showNewMemberPassword ? 'text' : 'password'}
-                  value={newMemberPassword}
-                />
-                <button
-                  aria-label={t(showNewMemberPassword ? 'Ocultar contraseña' : 'Mostrar contraseña')}
-                  className="member-create-form__password-toggle"
-                  disabled={createBusy}
-                  onClick={() => setShowNewMemberPassword((visible) => !visible)}
-                  type="button"
-                >
-                  {showNewMemberPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </span>
-            </label>
+            {!existingAccountEmail && (
+              <label className="field">
+                <span>{t('Contraseña inicial')}</span>
+                <span className="member-create-form__password">
+                  <input
+                    autoComplete="new-password"
+                    disabled={createBusy}
+                    minLength={6}
+                    onChange={(event) => setNewMemberPassword(event.target.value)}
+                    required
+                    type={showNewMemberPassword ? 'text' : 'password'}
+                    value={newMemberPassword}
+                  />
+                  <button
+                    aria-label={t(showNewMemberPassword ? 'Ocultar contraseña' : 'Mostrar contraseña')}
+                    className="member-create-form__password-toggle"
+                    disabled={createBusy}
+                    onClick={() => setShowNewMemberPassword((visible) => !visible)}
+                    type="button"
+                  >
+                    {showNewMemberPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </span>
+              </label>
+            )}
             <label className="field">
               <span>{t('Rol')}</span>
               <select
@@ -260,11 +301,28 @@ export function SettingsPage() {
                 <option value="admin">{t('Administrador')}</option>
               </select>
             </label>
-            <button className="button button--primary" disabled={createBusy} type="submit">
-              <UserPlus size={16} />
-              {createBusy ? t('Creando cuenta…') : t('Crear cuenta')}
-            </button>
+            {!existingAccountEmail && (
+              <button className="button button--primary" disabled={createBusy} type="submit">
+                <UserPlus size={16} />
+                {createBusy ? t('Creando cuenta…') : t('Crear cuenta')}
+              </button>
+            )}
           </form>
+
+          {existingAccountEmail && (
+            <div className="notice notice--warning" role="status">
+              <p>{t('Esta cuenta ya existe en Supabase. Puedes vincularla al espacio sin cambiar su contraseña.')}</p>
+              <button
+                className="button button--primary"
+                disabled={createBusy}
+                onClick={() => void handleLinkExistingMember()}
+                type="button"
+              >
+                <UserPlus size={16} />
+                {createBusy ? t('Vinculando cuenta…') : t('Vincular cuenta existente')}
+              </button>
+            </div>
+          )}
 
           <p className="settings-note">
             {t('Supabase Auth protege la contraseña; no se muestra después ni se guarda en la lista de miembros. El acceso funciona con correo y contraseña, sin invitación por correo.')}

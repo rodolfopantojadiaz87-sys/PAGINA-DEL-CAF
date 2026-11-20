@@ -162,12 +162,16 @@ registro público. `.env.local` está excluido por `.gitignore`.
    `SUPABASE_SERVICE_ROLE_KEY` al runtime de funciones. No las copies a
    variables `VITE_*`, al navegador, al repositorio ni al chat.
 3. Inicia sesión como `admin` y abre **Configuración → Miembros del espacio**.
-   Esta sección no aparece para colaboradores. Completa nombre, correo,
-   contraseña inicial (mínimo 6 caracteres) y rol, y pulsa **Crear cuenta**.
-   La cuenta queda activa de inmediato; el colaborador puede iniciar sesión
-   con ese correo y contraseña, sin abrir un enlace de invitación. Comparte la
-   contraseña por un canal seguro.
-4. Desde la lista, un administrador puede cambiar el rol, desactivar/reactivar
+   Esta sección no aparece para colaboradores. Para una cuenta nueva, completa
+   nombre, correo, contraseña inicial (mínimo 6 caracteres) y rol, y pulsa
+   **Crear cuenta**. La cuenta queda activa de inmediato; el colaborador puede
+   iniciar sesión con ese correo y contraseña, sin abrir un enlace de invitación.
+   Comparte la contraseña por un canal seguro.
+4. Si el correo ya existe en Supabase Auth, la aplicación ofrece **Vincular
+   cuenta existente**. Esa acción agrega o reactiva la membresía en el espacio
+   CAF, aplica el rol seleccionado y conserva la contraseña actual. Después, la
+   persona inicia sesión con sus credenciales existentes.
+5. Desde la lista, un administrador puede cambiar el rol, desactivar/reactivar
    o quitar a otro miembro del espacio. Quitar elimina únicamente la
    membresía: conserva la cuenta de Auth, el perfil y los registros históricos,
    pero la persona ya no puede acceder a este espacio. El propietario y la
@@ -182,11 +186,13 @@ registro público. `.env.local` está excluido por `.gitignore`.
 
 La Edge Function `supabase/functions/create-user/index.ts` valida el JWT y
 comprueba la membresía `admin` activa antes de usar la clave de servicio, que
-sólo existe en el runtime de Supabase. Valida nombre, correo, contraseña y rol;
-el ID del espacio es fijo y el cliente no puede solicitar acceso a otro espacio.
-La función usa las cabeceras CORS mantenidas por el SDK de Supabase. El registro
-público de Supabase Auth sigue deshabilitado. Cuentas creadas por el flujo
-antiguo de invitación aún pueden completar esa invitación.
+sólo existe en el runtime de Supabase. Valida el nombre, correo, contraseña y
+rol al crear cuentas; al vincular, busca el correo exacto en Auth y no solicita
+ni modifica la contraseña. El ID del espacio es fijo y el cliente no puede
+solicitar acceso a otro espacio. La función usa las cabeceras CORS mantenidas
+por el SDK de Supabase. El registro público de Supabase Auth sigue deshabilitado.
+Cuentas creadas por el flujo antiguo de invitación aún pueden completar esa
+invitación.
 
 ### Prueba manual con dos cuentas
 
@@ -195,16 +201,19 @@ antiguo de invitación aún pueden completar esa invitación.
 2. Desde **Configuración → Miembros del espacio**, crea un colaborador con un
    correo que controles, contraseña y rol `Colaborador`. La lista debe mostrar
    la cuenta como **Activa**.
-3. Cierra sesión e inicia como colaborador con el correo y la contraseña
+3. Prueba también con una cuenta Auth ya existente que aún no pertenezca al
+   espacio: la acción de vinculación debe agregarla como miembro activo y
+   conservar su contraseña.
+4. Cierra sesión e inicia como colaborador con el correo y la contraseña
    asignados. Comprueba que puede consultar el registro compartido
    y que puede crear registros. Intenta editar un registro creado por el admin:
    la interfaz/RLS debe impedirlo. Los datos no deben mezclarse con el IndexedDB
    local de otros dispositivos.
-4. Vuelve a entrar como admin, cambia el rol y prueba desactivar y reactivar al
+5. Vuelve a entrar como admin, cambia el rol y prueba desactivar y reactivar al
    colaborador. Tras desactivarlo, el colaborador debe perder acceso al espacio;
    vuelve a activarlo para recuperar el acceso. Los registros históricos deben
    seguir presentes.
-5. Confirma que el propietario permanece como administrador activo y que el
+6. Confirma que el propietario permanece como administrador activo y que el
    registro público sigue deshabilitado en Authentication → Settings.
 
 Estas pruebas requieren cuentas y un proyecto Supabase propios.
