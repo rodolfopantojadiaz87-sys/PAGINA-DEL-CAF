@@ -186,10 +186,10 @@ export function RegistrationPage({
               {PROCESS_OPTIONS.map((process) => <option key={process} value={process}>{getProcessLabel(process, language)}</option>)}
             </select>
           </label>
-          <div className="field">
-            <span>{t('Fecha de atención')}</span>
+          <label className="field">
+            <span>{t('Fecha de atención')} <b>*</b></span>
             <input max={localDate()} onChange={(event) => update('date', event.target.value)} required type="date" value={values.date} />
-          </div>
+          </label>
         </div>
         {error && <p className="form-message form-message--error" role="alert">{t(error)}</p>}
         {message && <p className="form-message form-message--success" role="status">{t(message)}</p>}

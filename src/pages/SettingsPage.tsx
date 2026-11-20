@@ -7,7 +7,6 @@ import { useAttendanceData } from '../hooks/useAttendanceData'
 import { useI18n } from '../i18n'
 import {
   createWorkspaceUser,
-  linkExistingWorkspaceUser,
   listWorkspaceUsers,
   removeWorkspaceMember,
   updateWorkspaceMember,
@@ -32,7 +31,6 @@ export function SettingsPage() {
   const [showNewMemberPassword, setShowNewMemberPassword] = useState(false)
   const [createBusy, setCreateBusy] = useState(false)
   const [createNotice, setCreateNotice] = useState('')
-  const [existingAccountEmail, setExistingAccountEmail] = useState('')
   const [memberNotice, setMemberNotice] = useState('')
   const [updatingMemberId, setUpdatingMemberId] = useState<string>()
   const [memberToRemove, setMemberToRemove] = useState<WorkspaceUser | null>(null)
@@ -89,55 +87,24 @@ export function SettingsPage() {
     setCreateNotice('')
     setMembersError('')
     try {
-      const result = await createWorkspaceUser(
+      await createWorkspaceUser(
         newMemberName,
         newMemberEmail,
         newMemberPassword,
         newMemberRole,
       )
-      if (result === 'existing-account') {
-        setExistingAccountEmail(newMemberEmail.trim())
-        setNewMemberPassword('')
-        return
-      }
       setNewMemberName('')
       setNewMemberEmail('')
       setNewMemberPassword('')
       setNewMemberRole('attendant')
       setShowNewMemberPassword(false)
-      setExistingAccountEmail('')
-      setCreateNotice('Cuenta creada y activa. Comparte las credenciales con la persona por un canal seguro.')
+      setCreateNotice('Miembro creado. Ya puede entrar con ese correo y contraseña.')
       await refreshMembers()
     } catch (createError: unknown) {
       setMembersError(
         createError instanceof Error
           ? createError.message
-          : 'No se pudo crear la cuenta.',
-      )
-    } finally {
-      setCreateBusy(false)
-    }
-  }
-
-  async function handleLinkExistingMember() {
-    setCreateBusy(true)
-    setCreateNotice('')
-    setMembersError('')
-    try {
-      await linkExistingWorkspaceUser(existingAccountEmail, newMemberRole)
-      setNewMemberName('')
-      setNewMemberEmail('')
-      setNewMemberPassword('')
-      setNewMemberRole('attendant')
-      setShowNewMemberPassword(false)
-      setExistingAccountEmail('')
-      setCreateNotice('Cuenta existente vinculada y activa. La persona puede ingresar con su contraseña actual.')
-      await refreshMembers()
-    } catch (linkError: unknown) {
-      setMembersError(
-        linkError instanceof Error
-          ? linkError.message
-          : 'No se pudo vincular la cuenta existente.',
+          : 'No se pudo crear el miembro.',
       )
     } finally {
       setCreateBusy(false)
@@ -228,13 +195,12 @@ export function SettingsPage() {
             <div>
               <p className="eyebrow">{t('ADMINISTRACIÓN')}</p>
               <h2>{t('Miembros del espacio')}</h2>
-              <p>{t('Crea cuentas con su rol y contraseña, y administra su acceso sin borrar sus registros.')}</p>
+              <p>{t('Crea a cada miembro con su rol y contraseña. Desactivar o quitar a alguien no borra sus registros.')}</p>
             </div>
           </div>
 
           <form className="member-create-form" onSubmit={(event) => void handleCreateMember(event)}>
-            {!existingAccountEmail && (
-              <label className="field">
+            <label className="field">
                 <span>{t('Nombre y apellido')}</span>
                 <input
                   autoComplete="name"
@@ -248,7 +214,6 @@ export function SettingsPage() {
                   value={newMemberName}
                 />
               </label>
-            )}
             <label className="field">
               <span>{t('Correo electrónico')}</span>
               <input
@@ -256,7 +221,6 @@ export function SettingsPage() {
                 disabled={createBusy}
                 onChange={(event) => {
                   setNewMemberEmail(event.target.value)
-                  setExistingAccountEmail('')
                   setCreateNotice('')
                 }}
                 placeholder={t('nombre@ejemplo.com')}
@@ -265,9 +229,8 @@ export function SettingsPage() {
                 value={newMemberEmail}
               />
             </label>
-            {!existingAccountEmail && (
-              <label className="field">
-                <span>{t('Contraseña inicial')}</span>
+            <label className="field">
+                <span>{t('Contraseña')}</span>
                 <span className="member-create-form__password">
                   <input
                     autoComplete="new-password"
@@ -289,7 +252,6 @@ export function SettingsPage() {
                   </button>
                 </span>
               </label>
-            )}
             <label className="field">
               <span>{t('Rol')}</span>
               <select
@@ -301,31 +263,14 @@ export function SettingsPage() {
                 <option value="admin">{t('Administrador')}</option>
               </select>
             </label>
-            {!existingAccountEmail && (
-              <button className="button button--primary" disabled={createBusy} type="submit">
-                <UserPlus size={16} />
-                {createBusy ? t('Creando cuenta…') : t('Crear cuenta')}
-              </button>
-            )}
+            <button className="button button--primary" disabled={createBusy} type="submit">
+              <UserPlus size={16} />
+              {createBusy ? t('Creando miembro…') : t('Crear miembro')}
+            </button>
           </form>
 
-          {existingAccountEmail && (
-            <div className="notice notice--warning" role="status">
-              <p>{t('Esta cuenta ya existe en Supabase. Puedes vincularla al espacio sin cambiar su contraseña.')}</p>
-              <button
-                className="button button--primary"
-                disabled={createBusy}
-                onClick={() => void handleLinkExistingMember()}
-                type="button"
-              >
-                <UserPlus size={16} />
-                {createBusy ? t('Vinculando cuenta…') : t('Vincular cuenta existente')}
-              </button>
-            </div>
-          )}
-
           <p className="settings-note">
-            {t('Supabase Auth protege la contraseña; no se muestra después ni se guarda en la lista de miembros. El acceso funciona con correo y contraseña, sin invitación por correo.')}
+            {t('Comparte el correo y la contraseña con la persona: con eso entra directamente con el rol elegido. La contraseña no se vuelve a mostrar.')}
           </p>
           {createNotice && <p className="form-message form-message--success" role="status">{t(createNotice)}</p>}
           {membersError && !memberToRemove && <p className="form-message form-message--error" role="alert">{t(membersError)}</p>}
@@ -349,11 +294,7 @@ export function SettingsPage() {
                   const isSelf = member.user_id === user?.id
                   const protectedMember = member.is_owner || isSelf
                   const memberName = member.email ?? member.full_name
-                  const status = !member.invitation_accepted_at
-                    ? t('Invitación pendiente')
-                    : member.is_active
-                      ? t('Activa')
-                      : t('Desactivada')
+                  const status = member.is_active ? t('Activa') : t('Desactivada')
 
                   return (
                     <tr key={member.id}>
@@ -388,10 +329,7 @@ export function SettingsPage() {
                           <span className="member-protected">{t(member.is_owner ? 'Siempre activo' : 'Tu cuenta')}</span>
                         ) : (
                           <div className="table-actions">
-                            {!member.invitation_accepted_at ? (
-                              <span className="member-protected">{t('Esperando aceptación')}</span>
-                            ) : (
-                              <button
+                            <button
                                 className={`button button--small ${member.is_active ? 'button--secondary' : 'button--primary'}`}
                                 disabled={updatingMemberId === member.id}
                                 onClick={() => void changeMember(member, { is_active: !member.is_active })}
@@ -403,7 +341,6 @@ export function SettingsPage() {
                                     ? t('Desactivar')
                                     : t('Reactivar')}
                               </button>
-                            )}
                             <button
                               aria-label={t('Quitar a {name} del espacio', { name: memberName })}
                               className="icon-button icon-button--danger"

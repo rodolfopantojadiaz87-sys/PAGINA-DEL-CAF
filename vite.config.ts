@@ -17,7 +17,7 @@ export default defineConfig({
       manifest: {
         name: 'Sistema personal de registro de atenciones',
         short_name: 'Atenciones',
-        description: 'Registro local de personas y atenciones.',
+        description: 'Registro compartido de personas y atenciones.',
         lang: 'es',
         theme_color: '#3e4494',
         background_color: '#f5f7f4',

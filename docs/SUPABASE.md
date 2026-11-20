@@ -22,8 +22,8 @@ workspaces ──1:N── admin_activity
   espacio inicial `CAF - Espacio compartido`; el diseño permite crear otros.
 - `workspace_members` es la fuente de verdad de rol y acceso. Un usuario puede
   pertenecer a varios espacios con roles distintos. Una membresía inactiva no
-  obtiene acceso. `is_owner` protege al propietario inicial y
-  `invitation_accepted_at` distingue invitaciones pendientes.
+  obtiene acceso. `is_owner` protege al propietario inicial.
+  `invitation_accepted_at` queda de un flujo anterior y ya no se usa.
 - `persons` representa una persona una sola vez por espacio. No hay índices
   únicos sobre nombre, teléfono o correo; esos campos sirven para buscar
   posibles coincidencias, no para rechazar registros.
@@ -129,8 +129,7 @@ ni desactivar al propietario.
    usa como **Site URL** el origen HTTPS exacto que muestre Vercel y agrega ese
    origen a Redirect URLs. No se encontró un dominio Vercel configurado en este
    repositorio, así que debe copiarse del panel; no uses un dominio supuesto.
-   Las redirecciones de invitación y recuperación usan el origen actual o
-   `APP_SITE_URL`.
+   La recuperación de contraseña redirige al origen actual.
 4. En Authentication → Settings, configura la longitud mínima de contraseña
    como 6 caracteres para que coincida con la aplicación. Opcionalmente, define
    `VITE_ACCESS_REQUEST_EMAIL` en `.env.local` con un correo público al que los
@@ -138,7 +137,7 @@ ni desactivar al propietario.
 
 `src/lib/supabase.ts` crea el cliente tipado y deja que el SDK gestione la
 persistencia y renovación de sesión. `src/pages/LoginPage.tsx` permite iniciar
-sesión, recuperar contraseña y aceptar invitaciones anteriores; no incluye
+sesión y recuperar contraseña; no incluye
 registro público. `.env.local` está excluido por `.gitignore`.
 
 ## Administración de colaboradores
@@ -163,14 +162,15 @@ registro público. `.env.local` está excluido por `.gitignore`.
    variables `VITE_*`, al navegador, al repositorio ni al chat.
 3. Inicia sesión como `admin` y abre **Configuración → Miembros del espacio**.
    Esta sección no aparece para colaboradores. Para una cuenta nueva, completa
-   nombre, correo, contraseña inicial (mínimo 6 caracteres) y rol, y pulsa
-   **Crear cuenta**. La cuenta queda activa de inmediato; el colaborador puede
-   iniciar sesión con ese correo y contraseña, sin abrir un enlace de invitación.
-   Comparte la contraseña por un canal seguro.
-4. Si el correo ya existe en Supabase Auth, la aplicación ofrece **Vincular
-   cuenta existente**. Esa acción agrega o reactiva la membresía en el espacio
-   CAF, aplica el rol seleccionado y conserva la contraseña actual. Después, la
-   persona inicia sesión con sus credenciales existentes.
+   nombre, correo, contraseña (mínimo 6 caracteres) y rol, y pulsa **Crear
+   miembro**. La cuenta queda activa de inmediato: la persona inicia sesión con
+   ese correo y contraseña y entra con el rol elegido, sin correos ni pasos
+   extra. Comparte la contraseña por un canal seguro.
+4. Si el correo ya tiene cuenta en Supabase Auth pero no es un miembro activo
+   (por ejemplo, alguien a quien se quitó o desactivó), el mismo formulario le
+   asigna la contraseña y el rol nuevos y reactiva su acceso. Si ya es un
+   miembro activo, la función lo rechaza para no cambiar su contraseña en
+   silencio; su rol se cambia desde la lista.
 5. Desde la lista, un administrador puede cambiar el rol, desactivar/reactivar
    o quitar a otro miembro del espacio. Quitar elimina únicamente la
    membresía: conserva la cuenta de Auth, el perfil y los registros históricos,
@@ -187,12 +187,11 @@ registro público. `.env.local` está excluido por `.gitignore`.
 La Edge Function `supabase/functions/create-user/index.ts` valida el JWT y
 comprueba la membresía `admin` activa antes de usar la clave de servicio, que
 sólo existe en el runtime de Supabase. Valida el nombre, correo, contraseña y
-rol al crear cuentas; al vincular, busca el correo exacto en Auth y no solicita
-ni modifica la contraseña. El ID del espacio es fijo y el cliente no puede
+rol. El ID del espacio es fijo y el cliente no puede
 solicitar acceso a otro espacio. La función usa las cabeceras CORS mantenidas
 por el SDK de Supabase. El registro público de Supabase Auth sigue deshabilitado.
-Cuentas creadas por el flujo antiguo de invitación aún pueden completar esa
-invitación.
+El antiguo flujo de invitación por correo (`invite-user`) se eliminó. Si esa
+función sigue desplegada, bórrala con `npx supabase functions delete invite-user`.
 
 ### Prueba manual con dos cuentas
 

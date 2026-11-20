@@ -11,6 +11,19 @@ export const PROCESS_OPTIONS = [
 
 export type ProcessType = (typeof PROCESS_OPTIONS)[number]
 
+// Identificadores usados antes de corregir la ortografía; siguen existiendo en registros antiguos.
+const LEGACY_PROCESS_ALIASES: Record<string, ProcessType> = {
+  'CAMBIO DE ENDEREZO': 'CAMBIO DE DIRECCION',
+  DESARCHIVAMENTO: 'DESARCHIVAR',
+  'ELABORACION DE CURRICULON': 'ELABORACION DE CURRICULUM',
+}
+
+/** Convierte identificadores históricos al identificador actual para agrupar y filtrar igual. */
+export function normalizeProcess(process: string): ProcessType {
+  const key = process.trim().toUpperCase()
+  return LEGACY_PROCESS_ALIASES[key] ?? (key as ProcessType)
+}
+
 export interface Person {
   id?: number | string
   name: string

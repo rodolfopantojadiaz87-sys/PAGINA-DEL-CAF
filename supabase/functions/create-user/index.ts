@@ -3,6 +3,12 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@^2/cors'
 
 const workspaceId = '11111111-1111-4111-8111-111111111111'
 
+/**
+ * Crea un miembro del espacio en un solo paso: el administrador indica nombre,
+ * correo, contraseña y rol, y la persona puede entrar de inmediato con esos datos.
+ * Si el correo ya tiene cuenta (por ejemplo, alguien a quien se quitó antes), se
+ * le asignan la contraseña y el rol nuevos y se reactiva su acceso.
+ */
 Deno.serve(async (request: Request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -35,18 +41,18 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ error: 'La sesión no es válida o expiró.' }, 401)
   }
 
-  const { data: membership, error: membershipError } = await supabase
+  const { data: requester, error: requesterError } = await supabase
     .from('workspace_members')
     .select('role, is_active')
     .eq('workspace_id', workspaceId)
     .eq('user_id', authenticated.user.id)
     .maybeSingle()
-  if (membershipError) {
-    console.error('No se pudo verificar el rol del solicitante:', membershipError.message)
+  if (requesterError) {
+    console.error('No se pudo verificar el rol del solicitante:', requesterError.message)
     return jsonResponse({ error: 'No se pudo verificar el permiso de administración.' }, 500)
   }
-  if (!membership || !membership.is_active || membership.role !== 'admin') {
-    return jsonResponse({ error: 'Solo un administrador activo puede crear cuentas.' }, 403)
+  if (!requester || !requester.is_active || requester.role !== 'admin') {
+    return jsonResponse({ error: 'Solo un administrador activo puede crear miembros.' }, 403)
   }
 
   let body: unknown
@@ -60,141 +66,27 @@ Deno.serve(async (request: Request) => {
     typeof body === 'object' && body !== null
       ? body as Record<string, unknown>
       : {}
-  const action = input.action ?? 'create'
   const fullName = typeof input.full_name === 'string' ? input.full_name.trim() : ''
   const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ''
   const password = typeof input.password === 'string' ? input.password : ''
   const role = input.role
 
+  if (fullName.length < 1 || fullName.length > 120) {
+    return jsonResponse({ error: 'Escribe un nombre de entre 1 y 120 caracteres.' }, 400)
+  }
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return jsonResponse({ error: 'Escribe un correo electrónico válido.' }, 400)
+  }
+  if (password.length < 6 || password.length > 72) {
+    return jsonResponse({ error: 'La contraseña debe tener entre 6 y 72 caracteres.' }, 400)
   }
   if (role !== 'admin' && role !== 'attendant') {
     return jsonResponse({ error: 'Selecciona un rol válido.' }, 400)
   }
 
-  if (action === 'link-existing') {
-    let existingUser: Awaited<ReturnType<typeof findAuthUserByEmail>>
-    try {
-      existingUser = await findAuthUserByEmail(supabase, email)
-    } catch (lookupError) {
-      console.error(
-        'No se pudo buscar la cuenta existente:',
-        lookupError instanceof Error ? lookupError.message : lookupError,
-      )
-      return jsonResponse({ error: 'No se pudo verificar la cuenta existente.' }, 500)
-    }
-    if (!existingUser) {
-      return jsonResponse(
-        { error: 'No se encontró una cuenta registrada con ese correo.' },
-        404,
-      )
-    }
-    if (!existingUser.email_confirmed_at) {
-      return jsonResponse(
-        { error: 'La cuenta todavía no confirmó su correo. Completa primero la invitación o verificación pendiente.' },
-        409,
-      )
-    }
-
-    const { data: existingMembership, error: existingMembershipError } =
-      await supabase
-        .from('workspace_members')
-        .select('id, is_active, invitation_accepted_at')
-        .eq('workspace_id', workspaceId)
-        .eq('user_id', existingUser.id)
-        .maybeSingle()
-    if (existingMembershipError) {
-      console.error(
-        'No se pudo consultar la membresía de la cuenta existente:',
-        existingMembershipError.message,
-      )
-      return jsonResponse({ error: 'No se pudo verificar la membresía existente.' }, 500)
-    }
-    if (existingMembership?.is_active) {
-      return jsonResponse(
-        {
-          error: 'Esta cuenta ya tiene acceso al espacio. Administra su rol desde la lista de miembros.',
-          code: 'ALREADY_MEMBER',
-        },
-        409,
-      )
-    }
-
-    const profileName =
-      typeof existingUser.user_metadata?.full_name === 'string' &&
-      existingUser.user_metadata.full_name.trim()
-        ? existingUser.user_metadata.full_name.trim()
-        : email.split('@')[0]
-    const { error: profileError } = await supabase.from('profiles').upsert(
-      {
-        id: existingUser.id,
-        full_name: profileName,
-        email,
-      },
-      { onConflict: 'id', ignoreDuplicates: true },
-    )
-    if (profileError) {
-      console.error(
-        'No se pudo verificar el perfil de la cuenta existente:',
-        profileError.message,
-      )
-      return jsonResponse({ error: 'No se pudo preparar el perfil de la cuenta.' }, 500)
-    }
-
-    const acceptedAt =
-      existingMembership?.invitation_accepted_at ?? new Date().toISOString()
-    const { error: membershipError } = existingMembership
-      ? await supabase
-        .from('workspace_members')
-        .update({
-          role,
-          is_active: true,
-          invitation_accepted_at: acceptedAt,
-        })
-        .eq('id', existingMembership.id)
-      : await supabase.from('workspace_members').insert({
-        workspace_id: workspaceId,
-        user_id: existingUser.id,
-        role,
-        is_active: true,
-        invitation_accepted_at: acceptedAt,
-      })
-    if (membershipError) {
-      console.error(
-        'No se pudo vincular la cuenta existente:',
-        membershipError.message,
-      )
-      return jsonResponse(
-        { error: 'No se pudo asignar la cuenta al espacio. Contacta al administrador técnico.' },
-        500,
-      )
-    }
-
-    return jsonResponse({ linked: true }, 200)
-  }
-
-  if (action !== 'create') {
-    return jsonResponse({ error: 'La operación solicitada no es válida.' }, 400)
-  }
-  if (fullName.length < 1 || fullName.length > 120) {
-    return jsonResponse({ error: 'Escribe un nombre de entre 1 y 120 caracteres.' }, 400)
-  }
-  if (password.length < 6 || password.length > 72) {
-    return jsonResponse({ error: 'La contraseña debe tener entre 6 y 72 caracteres.' }, 400)
-  }
-
+  let existingUser: Awaited<ReturnType<typeof findAuthUserByEmail>>
   try {
-    const existingUser = await findAuthUserByEmail(supabase, email)
-    if (existingUser) {
-      return jsonResponse(
-        {
-          error: 'Esta cuenta ya existe en Supabase. Puedes vincularla al espacio sin cambiar su contraseña.',
-          code: 'ACCOUNT_ALREADY_EXISTS',
-        },
-        409,
-      )
-    }
+    existingUser = await findAuthUserByEmail(supabase, email)
   } catch (lookupError) {
     console.error(
       'No se pudo comprobar si la cuenta ya existe:',
@@ -203,61 +95,83 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ error: 'No se pudo verificar el estado de la cuenta.' }, 500)
   }
 
-  const { data: created, error: createError } =
-    await supabase.auth.admin.createUser({
+  const { data: existingMembership, error: membershipLookupError } = existingUser
+    ? await supabase
+      .from('workspace_members')
+      .select('id, is_active')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', existingUser.id)
+      .maybeSingle()
+    : { data: null, error: null }
+  if (membershipLookupError) {
+    console.error('No se pudo consultar la membresía existente:', membershipLookupError.message)
+    return jsonResponse({ error: 'No se pudo verificar la membresía existente.' }, 500)
+  }
+  // No se cambia en silencio la contraseña de alguien que ya está usando el sistema.
+  if (existingMembership?.is_active) {
+    return jsonResponse(
+      { error: 'Este correo ya pertenece a un miembro activo. Cambia su rol desde la lista.' },
+      409,
+    )
+  }
+
+  let userId: string
+  let createdNewAccount = false
+  if (existingUser) {
+    const { error: updateError } = await supabase.auth.admin.updateUserById(existingUser.id, {
+      password,
+      email_confirm: true,
+      user_metadata: { ...existingUser.user_metadata, full_name: fullName },
+    })
+    if (updateError) {
+      console.error('No se pudo actualizar la cuenta existente:', updateError.message)
+      return jsonResponse({ error: updateError.message }, 400)
+    }
+    userId = existingUser.id
+  } else {
+    const { data: created, error: createError } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
       user_metadata: { full_name: fullName },
     })
-  if (createError || !created.user) {
-    const indicatesDuplicateAccount =
-      createError?.status === 422 ||
-      /already (been )?registered|already exists/i.test(createError?.message ?? '')
-    if (indicatesDuplicateAccount) {
-      try {
-        const existingUser = await findAuthUserByEmail(supabase, email)
-        if (existingUser) {
-          return jsonResponse(
-            {
-              error: 'Esta cuenta ya existe en Supabase. Puedes vincularla al espacio sin cambiar su contraseña.',
-              code: 'ACCOUNT_ALREADY_EXISTS',
-            },
-            409,
-          )
-        }
-      } catch (lookupError) {
-        console.error(
-          'No se pudo comprobar si la cuenta ya existe:',
-          lookupError instanceof Error ? lookupError.message : lookupError,
-        )
-        return jsonResponse({ error: 'No se pudo verificar el estado de la cuenta.' }, 500)
-      }
+    if (createError || !created.user) {
+      console.error('Supabase no pudo crear la cuenta:', createError?.message)
+      return jsonResponse({ error: createError?.message ?? 'No se pudo crear la cuenta.' }, 400)
     }
-    console.error('Supabase no pudo crear la cuenta:', createError?.message)
-    return jsonResponse(
-      { error: createError?.message ?? 'No se pudo crear la cuenta.' },
-      createError?.status === 422 ? 409 : 400,
-    )
+    userId = created.user.id
+    createdNewAccount = true
   }
 
-  const { error: membershipInsertError } = await supabase
-    .from('workspace_members')
-    .insert({
-      workspace_id: workspaceId,
-      user_id: created.user.id,
-      role,
-      is_active: true,
-      invitation_accepted_at: new Date().toISOString(),
-    })
-  if (membershipInsertError) {
-    console.error('No se pudo crear la membresía de la cuenta:', membershipInsertError.message)
-    const { error: cleanupError } =
-      await supabase.auth.admin.deleteUser(created.user.id)
-    if (cleanupError) {
-      console.error('No se pudo limpiar la cuenta sin membresía:', cleanupError.message)
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .upsert({ id: userId, full_name: fullName, email }, { onConflict: 'id' })
+  const { error: membershipError } = profileError
+    ? { error: profileError }
+    : existingMembership
+      ? await supabase
+        .from('workspace_members')
+        .update({ role, is_active: true, invitation_accepted_at: new Date().toISOString() })
+        .eq('id', existingMembership.id)
+      : await supabase.from('workspace_members').insert({
+        workspace_id: workspaceId,
+        user_id: userId,
+        role,
+        is_active: true,
+        invitation_accepted_at: new Date().toISOString(),
+      })
+  if (membershipError) {
+    console.error('No se pudo asignar la cuenta al espacio:', membershipError.message)
+    if (createdNewAccount) {
+      const { error: cleanupError } = await supabase.auth.admin.deleteUser(userId)
+      if (cleanupError) {
+        console.error('No se pudo limpiar la cuenta sin membresía:', cleanupError.message)
+      }
     }
-    return jsonResponse({ error: 'No se pudo asignar la cuenta al espacio. Contacta al administrador técnico.' }, 500)
+    return jsonResponse(
+      { error: 'No se pudo asignar la cuenta al espacio. Contacta al administrador técnico.' },
+      500,
+    )
   }
 
   return jsonResponse({ created: true }, 200)

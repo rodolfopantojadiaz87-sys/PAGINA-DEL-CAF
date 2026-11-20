@@ -1,5 +1,4 @@
 import {
-  ArrowDownRight,
   ArrowRight,
   CalendarDays,
   ChartNoAxesCombined,
@@ -50,7 +49,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
       <section className="stats-grid" aria-label={t('Resumen de registros')}>
         <article className="metric-card">
-          <div className="metric-card__top"><span className="metric-card__icon metric-card__icon--green"><UsersRound size={19} /></span><span className="metric-card__trend"><ArrowDownRight size={15} /> {t('Acumulado')}</span></div>
+          <div className="metric-card__top"><span className="metric-card__icon metric-card__icon--green"><UsersRound size={19} /></span><span className="metric-card__trend">{t('Acumulado')}</span></div>
           <p>{t('Personas distintas')}</p>
           <strong>{summary.peopleCount}</strong>
           <small>{t('Personas atendidas')}</small>
