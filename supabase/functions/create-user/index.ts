@@ -184,6 +184,25 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ error: 'La contraseña debe tener entre 6 y 72 caracteres.' }, 400)
   }
 
+  try {
+    const existingUser = await findAuthUserByEmail(supabase, email)
+    if (existingUser) {
+      return jsonResponse(
+        {
+          error: 'Esta cuenta ya existe en Supabase. Puedes vincularla al espacio sin cambiar su contraseña.',
+          code: 'ACCOUNT_ALREADY_EXISTS',
+        },
+        409,
+      )
+    }
+  } catch (lookupError) {
+    console.error(
+      'No se pudo comprobar si la cuenta ya existe:',
+      lookupError instanceof Error ? lookupError.message : lookupError,
+    )
+    return jsonResponse({ error: 'No se pudo verificar el estado de la cuenta.' }, 500)
+  }
+
   const { data: created, error: createError } =
     await supabase.auth.admin.createUser({
       email,
