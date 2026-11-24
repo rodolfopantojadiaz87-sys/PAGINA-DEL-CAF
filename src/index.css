@@ -1,18 +1,51 @@
+/*
+ * Sistema visual de Novo Norte.
+ * Azul marino de la marca para estructura y acciones; fondo frío y claro;
+ * el único código de color adicional es el de cada proceso (src/lib/processes.ts).
+ */
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  color: #1d2b22;
-  background: #f5f7f4;
+  --navy: #1b2f6b;
+  --navy-deep: #132352;
+  --navy-hover: #24398a;
+  --navy-soft: #e9eef9;
+  --sun: #f5c242;
+  --ink: #182038;
+  --ink-soft: #4a5472;
+  --muted: #677190;
+  --paper: #f5f7fb;
+  --surface: #ffffff;
+  --line: #dce2ee;
+  --line-strong: #c3cce0;
+  --danger: #b42318;
+  --danger-soft: #fdeeec;
+  --success: #11734b;
+  --success-soft: #e7f5ee;
+  --warning: #7a5600;
+  --warning-soft: #fff5d9;
+
+  --font-display: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-float: 0 12px 32px rgba(19, 35, 82, 0.16);
+
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  font-optical-sizing: auto;
-  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -20,6 +53,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background: var(--paper);
 }
 
 button,
@@ -27,4 +61,45 @@ input,
 select,
 textarea {
   font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--navy);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

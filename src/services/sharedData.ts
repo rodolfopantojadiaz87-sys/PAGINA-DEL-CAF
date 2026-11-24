@@ -1,7 +1,7 @@
 import { requireSupabase } from '../lib/supabase'
 import type { Database } from '../types/database.types'
 import { normalizeProcess, type Appointment, type Person, type PersonWithHistory } from '../types/records'
-import { sortHistory } from './people'
+import { sortHistory } from '../lib/dates'
 
 type PersonRow = Database['public']['Tables']['persons']['Row']
 type AttendanceRow = Database['public']['Tables']['attendances']['Row']

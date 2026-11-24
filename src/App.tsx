@@ -1,46 +1,69 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useCallback, useState } from 'react'
 import './App.css'
 import { useAuth } from './auth/useAuth'
 import { useWorkspace } from './auth/useWorkspace'
 import { AppShell } from './components/AppShell'
+import { PersonDrawer } from './components/PersonDrawer'
+import { AttendanceDataProvider } from './hooks/AttendanceDataProvider'
+import { DEFAULT_FILTERS, type AttendanceFilters } from './lib/filters'
 import { LoginPage } from './pages/LoginPage'
 import { WorkspaceGatePage } from './pages/WorkspaceGatePage'
 import { signOut } from './services/authService'
-import type { Person, Section } from './types/records'
+import type { PersonWithHistory, Section } from './types/records'
 import { useI18n } from './i18n'
 
-const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
-const PeoplePage = lazy(() => import('./pages/PeoplePage').then((module) => ({ default: module.PeoplePage })))
+const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })))
 const RegistrationPage = lazy(() => import('./pages/RegistrationPage').then((module) => ({ default: module.RegistrationPage })))
+const PeoplePage = lazy(() => import('./pages/PeoplePage').then((module) => ({ default: module.PeoplePage })))
+const AttendancesPage = lazy(() => import('./pages/AttendancesPage').then((module) => ({ default: module.AttendancesPage })))
 const ReportsPage = lazy(() => import('./pages/ReportsPage').then((module) => ({ default: module.ReportsPage })))
-const SearchPage = lazy(() => import('./pages/SearchPage').then((module) => ({ default: module.SearchPage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
+
+/** Lo que se abre en "Registrar atención": una persona existente o un nombre nuevo. */
+export interface RegistrationTarget {
+  person?: PersonWithHistory
+  name?: string
+}
 
 export function WorkspaceApp() {
   const { t } = useI18n()
   const [section, setSection] = useState<Section>('home')
-  const [selectedPerson, setSelectedPerson] = useState<Person>()
+  const [registration, setRegistration] = useState<RegistrationTarget>({})
+  const [registrationKey, setRegistrationKey] = useState(0)
+  const [openPersonId, setOpenPersonId] = useState<string>()
+  // Atenciones e Informes comparten filtros: al pasar de una a otra se ve el mismo conjunto.
+  const [filters, setFilters] = useState<AttendanceFilters>(DEFAULT_FILTERS)
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState('')
   const { user } = useAuth()
   const { access } = useWorkspace()
-  const canManageWorkspace =
-    access.status === 'active' && access.membership.role === 'admin'
+  const canManageWorkspace = access.status === 'active' && access.membership.role === 'admin'
+  const metadataName = user?.user_metadata?.full_name
+  const userName = typeof metadataName === 'string' && metadataName.trim()
+    ? metadataName.trim()
+    : user?.email?.split('@')[0] ?? ''
 
-  function navigate(next: Section) {
+  const navigate = useCallback((next: Section) => {
     if (next === 'settings' && !canManageWorkspace) return
-    if (next !== 'new') setSelectedPerson(undefined)
+    if (next === 'new') {
+      setRegistration({})
+      setRegistrationKey((key) => key + 1)
+    }
+    setOpenPersonId(undefined)
     setSection(next)
-  }
+    window.scrollTo({ top: 0 })
+  }, [canManageWorkspace])
 
-  function selectPerson(person: Person) {
-    setSelectedPerson(person)
+  const startRegistration = useCallback((target: RegistrationTarget) => {
+    setRegistration(target)
+    setRegistrationKey((key) => key + 1)
+    setOpenPersonId(undefined)
     setSection('new')
-  }
+    window.scrollTo({ top: 0 })
+  }, [])
 
-  function clearSelectedPerson() {
-    setSelectedPerson(undefined)
-  }
+  const openPerson = useCallback((personId: string) => setOpenPersonId(personId), [])
+  const closePerson = useCallback(() => setOpenPersonId(undefined), [])
 
   async function handleSignOut() {
     setSigningOut(true)
@@ -57,36 +80,55 @@ export function WorkspaceApp() {
   function renderPage() {
     switch (section) {
       case 'new':
-        return <RegistrationPage key={selectedPerson?.id ?? 'new'} selectedPerson={selectedPerson} onClearSelectedPerson={clearSelectedPerson} onCancel={() => navigate('home')} />
-      case 'search':
-        return <SearchPage onSelectPerson={selectPerson} />
+        return (
+          <RegistrationPage
+            initialName={registration.name}
+            key={registrationKey}
+            onOpenPerson={openPerson}
+            onRegisterAnother={() => startRegistration({})}
+            selectedPerson={registration.person}
+          />
+        )
       case 'people':
-        return <PeoplePage />
+        return <PeoplePage onOpenPerson={openPerson} onRegister={startRegistration} />
+      case 'attendances':
+        return <AttendancesPage filters={filters} onFiltersChange={setFilters} onOpenPerson={openPerson} />
       case 'reports':
-        return <ReportsPage />
+        return <ReportsPage filters={filters} onFiltersChange={setFilters} onNavigate={navigate} />
       case 'settings':
         return canManageWorkspace
           ? <SettingsPage />
-          : <DashboardPage onNavigate={navigate} />
+          : <HomePage onNavigate={navigate} onOpenPerson={openPerson} onRegister={startRegistration} />
       case 'home':
-        return <DashboardPage onNavigate={navigate} />
+        return <HomePage onNavigate={navigate} onOpenPerson={openPerson} onRegister={startRegistration} />
     }
   }
 
   return (
-    <AppShell
-      section={section === 'settings' && !canManageWorkspace ? 'home' : section}
-      canManageWorkspace={canManageWorkspace}
-      onNavigate={navigate}
-      userEmail={user?.email ?? undefined}
-      onSignOut={() => void handleSignOut()}
-      signingOut={signingOut}
-      signOutError={signOutError}
-    >
-      <Suspense fallback={<div className="loading-state" role="status">{t('Cargando sección…')}</div>}>
-        {renderPage()}
-      </Suspense>
-    </AppShell>
+    <AttendanceDataProvider>
+      <AppShell
+        canManageWorkspace={canManageWorkspace}
+        onNavigate={navigate}
+        onSignOut={() => void handleSignOut()}
+        roleLabel={canManageWorkspace ? 'Administrador' : 'Colaborador'}
+        section={section === 'settings' && !canManageWorkspace ? 'home' : section}
+        signOutError={signOutError}
+        signingOut={signingOut}
+        userEmail={user?.email ?? undefined}
+        userName={userName}
+      >
+        <Suspense fallback={<p className="loading" role="status">{t('Cargando…')}</p>}>
+          {renderPage()}
+        </Suspense>
+      </AppShell>
+      {openPersonId && (
+        <PersonDrawer
+          onClose={closePerson}
+          onRegister={(person) => startRegistration({ person })}
+          personId={openPersonId}
+        />
+      )}
+    </AttendanceDataProvider>
   )
 }
 
@@ -96,13 +138,13 @@ function App() {
   const { access } = useWorkspace()
 
   if (loading) {
-    return <div className="auth-page"><div className="loading-state" role="status">{t('Verificando sesión…')}</div></div>
+    return <div className="splash"><p className="loading" role="status">{t('Verificando sesión…')}</p></div>
   }
 
   if (!configured || !session || passwordRecovery) return <LoginPage />
 
   if (access.status === 'loading' || access.status === 'no-session') {
-    return <div className="auth-page"><div className="loading-state" role="status">{t('Verificando membresía…')}</div></div>
+    return <div className="splash"><p className="loading" role="status">{t('Comprobando tu acceso…')}</p></div>
   }
 
   if (access.status !== 'active') return <WorkspaceGatePage />

@@ -1,6 +1,5 @@
 import { requireSupabase } from '../lib/supabase'
 import type { ProcessType } from '../types/records'
-import { getSemesterRange } from '../statistics/aggregates'
 
 export interface RegisterSharedAttendanceInput {
   workspaceId: string
@@ -26,24 +25,6 @@ export async function registerSharedAttendance(
     target_process: input.process,
     target_attended_at: input.date,
   })
-  if (error) throw error
-  return data
-}
-
-export async function countDistinctAttendedPeople(
-  workspaceId: string,
-  year: number,
-  semester: 1 | 2,
-): Promise<number> {
-  const { start, end } = getSemesterRange(year, semester)
-  const { data, error } = await requireSupabase().rpc(
-    'count_distinct_attended_people',
-    {
-      target_workspace_id: workspaceId,
-      period_start: start,
-      period_end: end,
-    },
-  )
   if (error) throw error
   return data
 }

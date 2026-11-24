@@ -1,10 +1,8 @@
-# Sistema compartido de registro de atenciones
+# Novo Norte · Registro de atenciones
 
-Aplicación web progresiva (PWA) para registrar personas y mantener el historial
-compartido de sus atenciones. Está construida con React, TypeScript y Vite; los
-registros nuevos se guardan en Supabase cuando el proyecto está configurado.
-Los registros anteriores de Dexie permanecen locales y no se migran
-automáticamente.
+Aplicación web progresiva (PWA) para registrar a las personas que atiende el
+centro y mantener el historial compartido de sus atenciones. Está construida
+con React, TypeScript y Vite, y guarda los datos en Supabase.
 
 ## Iniciar y comprobar
 
@@ -53,83 +51,74 @@ contraseñas ni claves `service_role` en ellas. La aplicación sólo necesita la
 clave publicable; Supabase Auth y las políticas RLS deben estar configurados
 como se explica en [`docs/SUPABASE.md`](./docs/SUPABASE.md).
 
+## Secciones de la aplicación
+
+- **Inicio**: funciona como recepción. Se busca a la persona que llega (por
+  nombre, teléfono o correo, sin importar tildes) y se registra su atención, o
+  se crea si es la primera vez. Muestra la actividad del día y del mes.
+- **Registrar atención**: elige la persona (o crea una nueva), el proceso y la
+  fecha. Avisa si ya existe alguien con un nombre parecido.
+- **Personas**: directorio con búsqueda, filtros por nacionalidad, proceso y
+  rango de fechas de atención, orden y exportación a CSV. Al pulsar una persona
+  se abre su ficha con el historial y las acciones.
+- **Atenciones**: registro cronológico de todas las atenciones con filtros
+  (rango de fechas, periodos rápidos, proceso, nacionalidad y colaborador) y
+  exportación a CSV o PDF con el listado.
+- **Informes**: cifras, atenciones por mes, por proceso, por nacionalidad y por
+  colaborador según los mismos filtros. El PDF imprime el periodo y los filtros
+  aplicados y puede incluir el listado detallado. Atenciones e Informes
+  comparten los filtros.
+- **Miembros** (solo administración): alta de miembros con contraseña y rol,
+  cambio de rol, desactivar y quitar.
+
 ## Cómo se organiza el código
 
-- `index.html`: documento inicial, idioma español y metadatos de la app.
-- `src/main.tsx`: crea la raíz de React y carga los estilos globales.
-- `src/App.tsx`: decide qué sección mostrar y abre cada página bajo demanda.
-- `src/components/`: navegación, títulos de sección e historial reutilizables.
-- `src/pages/`: inicio, registro, búsqueda, personas, estadísticas, informes y
-  configuración; cada sección tiene su propio archivo.
-- `src/database/database.ts`: define la base IndexedDB con Dexie. `people`
-  contiene datos personales; `appointments` conserva cada visita, y
-  `nationalityColors` guarda los colores asignados. Las actualizaciones del
-  código no borran esas tablas.
-- `src/services/people.ts`: guarda personas, evita duplicados, busca y consulta
-  historiales, y elimina una persona junto con sus atenciones.
-- `src/services/backup.ts`: exporta y valida/restaura copias JSON.
-- `src/hooks/useAttendanceData.ts`: observa la base de datos y actualiza los
-  resúmenes cuando cambian los registros.
-- `src/statistics/aggregates.ts`: calcula personas distintas, atenciones y
-  procesos por semestre.
-- `src/services/nationalityColors.ts`: asigna y conserva un color exclusivo para
-  cada nacionalidad.
-- `src/components/NationalityLegend.tsx`: muestra país, cantidad y porcentaje
-  con el mismo color que los gráficos y los informes.
-- `src/pdf/semesterReport.ts`: crea el informe PDF y sus tablas/gráficos.
-- `src/types/records.ts`: define las formas de los registros y los procesos.
-- `src/lib/supabase.ts`, `src/services/authService.ts` y `src/auth/`: cliente
-  tipado, operaciones de autenticación y protección de la aplicación.
-- `src/types/database.types.ts`: tipos TypeScript del esquema Supabase.
-- `.env.example`: variables publicables requeridas; cópialo a `.env.local` y
-  completa los valores del proyecto Supabase.
-- `src/App.css` y `src/index.css`: estilos del panel y reglas globales
-  adaptables a pantallas pequeñas.
-- `vite.config.ts` y `public/`: manifiesto, iconos instalables, caché offline
-  y actualización de la PWA. Los iconos de instalación están en
-  `public/icons/`; `public/favicon.ico` y `public/apple-touch-icon.png` usan el
-  icono original que proporcionaste. `manifest.webmanifest` se genera durante
-  la compilación con la configuración de `vite.config.ts`.
+- `src/App.tsx`: navegación entre secciones, ficha de persona y filtros
+  compartidos.
+- `src/components/`: estructura (`AppShell`), filtros, ficha de persona,
+  gráficos de barras y por mes, historial y etiquetas de proceso.
+- `src/pages/`: una página por sección, más acceso (`LoginPage`) y la pantalla
+  para cuentas sin acceso (`WorkspaceGatePage`).
+- `src/hooks/AttendanceDataProvider.tsx`: carga personas y atenciones una vez
+  para toda la app y las refresca al guardar, editar o eliminar.
+- `src/lib/filters.ts`: periodos, filtrado de atenciones y opciones de filtro.
+- `src/lib/search.ts`: búsqueda de personas sin tildes y por relevancia.
+- `src/lib/processes.ts`: color de cada proceso, usado en toda la app y el PDF.
+- `src/statistics/aggregates.ts`: resumen de un conjunto de atenciones
+  (personas distintas, personas nuevas, por proceso, nacionalidad, colaborador
+  y mes).
+- `src/pdf/report.ts`: informe PDF; `src/lib/csv.ts`: exportación CSV.
+- `src/services/`: acceso a Supabase (personas, atenciones, miembros, sesión).
+- `src/i18n.tsx`: textos en español y portugués.
+- `src/index.css` y `src/App.css`: sistema visual (colores de la marca,
+  tipografías Nunito y Public Sans) y estilos adaptados a móvil.
+- `scripts/seed-local.mjs`: datos de prueba para el Supabase local.
 
-## Colores e iconos
+## Probar en local con datos de prueba
 
-Cada nacionalidad recibe un color persistente en IndexedDB. El selector usa
-primero una paleta diferenciable y genera colores adicionales si se agota; las
-asignaciones existentes no cambian al añadir países. Las páginas de estadísticas
-y los informes usan la misma asignación.
+Con Docker o Podman activo:
 
-El icono original se conserva en `public/favicon.ico`. Los tamaños de Android y
-el icono adaptable están en `public/icons/`, y el de iPhone en
-`public/apple-touch-icon.png`. Para reemplazar el diseño, sustituye estos
-archivos por imágenes con los mismos nombres y tamaños. Para cambiar el nombre
-de la aplicación, modifica `name`, `short_name` y `description` en
-`vite.config.ts`, además del `<title>` y la descripción en `index.html`.
+```bash
+npx supabase start
+node scripts/seed-local.mjs
+```
 
-La app se instala desde `localhost` o HTTPS. En iPhone, abre la app en Safari,
-usa **Compartir → Añadir a pantalla de inicio**. El service worker almacena la
-interfaz para uso sin conexión; los registros y colores están en IndexedDB y no
-se eliminan al instalar una actualización.
+Crea `.env.development.local` con la URL `http://127.0.0.1:54321` y la clave
+publicable que muestra `npx supabase status`, y ejecuta `npm run dev`. El
+script crea `admin@caf.test` y `colaborador@caf.test` (contraseña
+`caf-local-123`), solo en local.
 
 ## Decisiones importantes
 
-Una persona tiene un único registro personal y puede tener muchas atenciones.
-Cada atención guarda su propia fecha y proceso. Por ello, las estadísticas
-cuentan IDs de personas distintos para el total de personas, y filas de
-atención para el total de visitas/procesos.
+Una persona tiene un único registro y puede tener muchas atenciones. Las
+estadísticas cuentan personas distintas para el total de personas y filas de
+atención para el total de atenciones. "Personas nuevas" son las que tuvieron su
+primera atención dentro del periodo filtrado.
 
-En un registro nuevo, una coincidencia por nombre, nacionalidad y teléfono o
-correo solicita confirmación para añadir la atención a la persona existente.
-Si hay varias coincidencias, se pide buscar y seleccionar la persona correcta.
-La atención se crea con una función PostgreSQL transaccional y registra al
-colaborador autenticado.
-
-Las copias de seguridad JSON antiguas son locales y sin cifrar. La pantalla de
-configuración compartida no exporta ni restaura esa base local; la
-administración de copias compartidas se implementará por separado.
-
-El proyecto avanza por etapas: estructura y panel; base/formulario; búsqueda e
-historial; estadísticas; informes y PDF; y PWA/offline. La compilación de
-producción y el lint comprueban el código.
+Al registrar a alguien nuevo, la app sugiere personas con nombre parecido y, al
+guardar, comprueba coincidencias por nombre, nacionalidad y teléfono o correo
+para pedir confirmación antes de crear un duplicado. La atención se crea con
+una función PostgreSQL transaccional que registra al colaborador autenticado.
 
 ## Datos compartidos y administración de acceso Supabase
 
@@ -146,7 +135,7 @@ credenciales; no necesitan invitación por correo.
 La app verifica la membresía activa y el rol desde `workspace_members`. El
 directorio, búsqueda, historial, registro, estadísticas e informes consultan la
 base compartida con la sesión autenticada. RLS autoriza cada operación en el
-servidor. Los registros de Dexie de esta instalación quedan separados. Para la
+servidor. Para la
 configuración, despliegue de la Edge Function y pruebas con cuenta admin y
 colaborador, sigue las instrucciones de [`docs/SUPABASE.md`](./docs/SUPABASE.md).
 

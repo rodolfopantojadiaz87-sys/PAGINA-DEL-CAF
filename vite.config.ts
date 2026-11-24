@@ -15,12 +15,12 @@ export default defineConfig({
         'icons/icon-maskable-512.png',
       ],
       manifest: {
-        name: 'Sistema personal de registro de atenciones',
+        name: 'Novo Norte · Registro de atenciones',
         short_name: 'Atenciones',
         description: 'Registro compartido de personas y atenciones.',
         lang: 'es',
-        theme_color: '#3e4494',
-        background_color: '#f5f7f4',
+        theme_color: '#1b2f6b',
+        background_color: '#f5f7fb',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -47,6 +47,18 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         cleanupOutdatedCaches: true,
+        // Las fuentes de Google se guardan para que la app se vea igual sin conexión.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

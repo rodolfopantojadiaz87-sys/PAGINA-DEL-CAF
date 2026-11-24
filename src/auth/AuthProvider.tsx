@@ -80,13 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (error) {
     return (
       <AuthContext.Provider value={value}>
-        <div className="auth-page">
+        <div className="splash">
           <LanguageSwitcher />
-          <section className="auth-card" role="alert">
+          <section className="auth__card" role="alert">
             <h1>{t('No se pudo verificar la sesión')}</h1>
             <p>{t(error)}</p>
             <p>{t('Comprueba la conexión con Supabase y vuelve a cargar la página.')}</p>
-            <button className="auth-button" onClick={() => window.location.reload()} type="button">
+            <button className="button button--primary" onClick={() => window.location.reload()} type="button">
               {t('Reintentar')}
             </button>
           </section>

@@ -43,31 +43,15 @@ export interface Appointment {
   creatorName?: string
 }
 
-export interface NationalityColor {
-  nationality: string
-  label: string
-  color: string
-  slot: number
-}
-
 export interface PersonWithHistory extends Person {
   appointments: Appointment[]
   lastAppointment?: Appointment
 }
 
-export interface BackupFile {
-  format: 'registro-atenciones-backup'
-  version: 1
-  exportedAt: string
-  people: Person[]
-  appointments: Appointment[]
-  nationalityColors?: NationalityColor[]
-}
-
 export type Section =
   | 'home'
   | 'new'
-  | 'search'
   | 'people'
+  | 'attendances'
   | 'reports'
   | 'settings'

@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react'
-import { LockKeyhole, Mail } from 'lucide-react'
 import {
   initialAuthRedirect,
   requestPasswordRecovery,
@@ -20,7 +19,6 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
-  const [accessRequestNotice, setAccessRequestNotice] = useState(false)
   const [error, setError] = useState<string | undefined>(initialAuthRedirect.error ?? undefined)
   const [notice, setNotice] = useState<string>()
   const [busy, setBusy] = useState(false)
@@ -84,140 +82,99 @@ export function LoginPage() {
       ? t('Recuperar acceso')
       : t('Iniciar sesión')
 
+  const accessEmail = import.meta.env.VITE_ACCESS_REQUEST_EMAIL?.trim()
+
   return (
-    <div className="auth-page">
-      <LanguageSwitcher />
-      <section className="auth-card">
-        <div className="auth-card__brand">
-          <span className="auth-card__icon"><LockKeyhole size={25} /></span>
-          <p className="auth-card__eyebrow">{t('SISTEMA PRIVADO')}</p>
-        </div>
-        <h1>{title}</h1>
-        <p className="auth-card__description">
-          {isRecovery
-            ? t('Te enviaremos instrucciones al correo asociado a tu cuenta.')
-            : isPasswordUpdate
-              ? t('Elige una contraseña de al menos 6 caracteres.')
-              : t('Usa las credenciales de tu cuenta autorizada.')}
-        </p>
+    <div className="auth">
+      <aside className="auth__brand">
+        <img alt="" height="88" src="/icons/icon-512.png" width="88" />
+        <p className="auth__name">Novo Norte</p>
+        <p className="auth__tagline">{t('Registro de atenciones')}</p>
+      </aside>
+      <main className="auth__main">
+        <div className="auth__language"><LanguageSwitcher /></div>
+        <section className="auth__card">
+          <h1>{title}</h1>
+          <p className="auth__lead">
+            {isRecovery
+              ? t('Te enviaremos un enlace al correo de tu cuenta para crear una contraseña nueva.')
+              : isPasswordUpdate
+                ? t('Elige una contraseña de al menos 6 caracteres.')
+                : t('Entra con el correo y la contraseña que te dio la administración.')}
+          </p>
 
-        {!configured && (
-          <div className="auth-message auth-message--warning" role="alert">
-            {t('Supabase todavía no está configurado. Define')}
-            {' '}<code>VITE_SUPABASE_URL</code> y
-            {' '}<code>VITE_SUPABASE_PUBLISHABLE_KEY</code> {t('en un archivo')}
-            <code> .env.local</code> {t('y reinicia Vite.')}
-          </div>
-        )}
-
-        <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
-          {!isPasswordUpdate && (
-            <label className="auth-field">
-              <span>{t('Correo electrónico')}</span>
-              <span className="auth-field__control">
-                <Mail size={18} />
-                <input
-                  autoComplete="email"
-                  disabled={!configured || busy}
-                  onChange={(event) => setEmail(event.target.value)}
-                  required
-                  type="email"
-                  value={email}
-                />
-              </span>
-            </label>
-          )}
-          {!isRecovery && (
-            <label className="auth-field">
-              <span>{t(isPasswordUpdate ? 'Contraseña nueva' : 'Contraseña')}</span>
-              <input
-                autoComplete={isPasswordUpdate ? 'new-password' : 'current-password'}
-                disabled={!configured || busy}
-                minLength={6}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                type="password"
-                value={password}
-              />
-            </label>
-          )}
-          {isPasswordUpdate && (
-            <label className="auth-field">
-              <span>{t('Repetir contraseña nueva')}</span>
-              <input
-                autoComplete="new-password"
-                disabled={!configured || busy}
-                minLength={6}
-                onChange={(event) => setConfirmation(event.target.value)}
-                required
-                type="password"
-                value={confirmation}
-              />
-            </label>
-          )}
-          {error && <p className="auth-error" role="alert">{t(error)}</p>}
-          {notice && <p className="auth-message" role="status">{t(notice)}</p>}
-          <button className="auth-button" disabled={!configured || busy} type="submit">
-            {busy
-              ? t('Procesando…')
-              : isRecovery
-                ? t('Enviar instrucciones')
-                : isPasswordUpdate
-                  ? t('Actualizar contraseña')
-                  : t('Entrar')}
-          </button>
-        </form>
-
-        {!isPasswordUpdate && (
-          <button
-            className="auth-link"
-            disabled={busy}
-            onClick={() => {
-              setMode(isRecovery ? 'sign-in' : 'recovery')
-              setError(undefined)
-              setNotice(undefined)
-            }}
-            type="button"
-          >
-            {isRecovery ? t('Volver al inicio de sesión') : t('¿Olvidaste tu contraseña?')}
-          </button>
-        )}
-        {isPasswordUpdate && (
-          <button className="auth-link" disabled={busy} onClick={() => void handleSignOut()} type="button">
-            {t('Cancelar y volver al inicio de sesión')}
-          </button>
-        )}
-        {!isRecovery && !isPasswordUpdate && (
-          <>
-            <p className="auth-card__footnote">
-              {t('Las cuentas son creadas por la administración. No hay registro público.')}
+          {!configured && (
+            <p className="message message--warning" role="alert">
+              {t('Supabase todavía no está configurado. Define')} <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> {t('en un archivo')} <code>.env.local</code> {t('y reinicia Vite.')}
             </p>
-            {import.meta.env.VITE_ACCESS_REQUEST_EMAIL?.trim() ? (
-              <a
-                className="auth-link"
-                href={`mailto:${encodeURIComponent(import.meta.env.VITE_ACCESS_REQUEST_EMAIL.trim()).replace(/%40/gi, '@')}?subject=${encodeURIComponent(t('Solicitud de acceso a Atenciones'))}`}
-              >
-                {t('Solicitar acceso')}
-              </a>
-            ) : (
-              <>
-                <button
-                  className="auth-link"
-                  onClick={() => setAccessRequestNotice(true)}
-                  type="button"
-                >
-                  {t('Solicitar acceso')}
-                </button>
-                {accessRequestNotice && (
-                  <p className="auth-card__footnote">
-                    {t('Pide a la persona administradora del espacio que cree tu cuenta con este correo.')}
-                  </p>
-                )}
-              </>
+          )}
+
+          <form className="form-stack" onSubmit={(event) => void handleSubmit(event)}>
+            {!isPasswordUpdate && (
+              <label className="field">
+                <span>{t('Correo electrónico')}</span>
+                <input autoComplete="email" disabled={!configured || busy} onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
+              </label>
             )}
-          </>
-        )}
-      </section>
+            {!isRecovery && (
+              <label className="field">
+                <span>{t(isPasswordUpdate ? 'Contraseña nueva' : 'Contraseña')}</span>
+                <input autoComplete={isPasswordUpdate ? 'new-password' : 'current-password'} disabled={!configured || busy} minLength={6} onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
+              </label>
+            )}
+            {isPasswordUpdate && (
+              <label className="field">
+                <span>{t('Repetir contraseña nueva')}</span>
+                <input autoComplete="new-password" disabled={!configured || busy} minLength={6} onChange={(event) => setConfirmation(event.target.value)} required type="password" value={confirmation} />
+              </label>
+            )}
+            {error && <p className="message message--error" role="alert">{t(error)}</p>}
+            {notice && <p className="message message--success" role="status">{t(notice)}</p>}
+            <button className="button button--primary button--large" disabled={!configured || busy} type="submit">
+              {busy
+                ? t('Procesando…')
+                : isRecovery
+                  ? t('Enviar enlace')
+                  : isPasswordUpdate
+                    ? t('Guardar contraseña')
+                    : t('Entrar')}
+            </button>
+          </form>
+
+          <div className="auth__links">
+            {!isPasswordUpdate && (
+              <button
+                className="link-button"
+                disabled={busy}
+                onClick={() => {
+                  setMode(isRecovery ? 'sign-in' : 'recovery')
+                  setError(undefined)
+                  setNotice(undefined)
+                }}
+                type="button"
+              >
+                {isRecovery ? t('Volver a iniciar sesión') : t('¿Olvidaste tu contraseña?')}
+              </button>
+            )}
+            {isPasswordUpdate && (
+              <button className="link-button" disabled={busy} onClick={() => void handleSignOut()} type="button">
+                {t('Cancelar y volver al inicio de sesión')}
+              </button>
+            )}
+          </div>
+          {!isRecovery && !isPasswordUpdate && (
+            <p className="auth__note">
+              {t('¿No tienes cuenta? La crea un administrador del centro.')}
+              {accessEmail && (
+                <>
+                  {' '}
+                  <a href={`mailto:${encodeURIComponent(accessEmail).replace(/%40/gi, '@')}?subject=${encodeURIComponent(t('Solicitud de acceso a Atenciones'))}`}>{t('Pedir acceso por correo')}</a>
+                </>
+              )}
+            </p>
+          )}
+        </section>
+      </main>
     </div>
   )
 }

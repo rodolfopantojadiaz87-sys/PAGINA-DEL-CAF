@@ -1,163 +1,198 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { CalendarDays, Mail, Pencil, Phone, Search, Trash2, UsersRound, X } from 'lucide-react'
-import { useAuth } from '../auth/useAuth'
-import { useWorkspace } from '../auth/useWorkspace'
-import { HistoryList } from '../components/HistoryList'
-import { SectionTitle } from '../components/SectionTitle'
-import { deleteSharedPerson, getAllSharedPeople, updateSharedPerson } from '../services/personService'
-import { PROCESS_OPTIONS, type Person, type PersonWithHistory } from '../types/records'
+import { useMemo, useState } from 'react'
+import { Download, Plus, Search, X } from 'lucide-react'
+import { PageHeader } from '../components/PageHeader'
+import { useAttendanceData } from '../hooks/useAttendanceData'
 import { getLocale, getProcessLabel, useI18n } from '../i18n'
-import { capitalizeWords } from '../utils/textFormatting'
+import { downloadCsv } from '../lib/csv'
+import { formatDate, localDate, relativeDay } from '../lib/dates'
+import { nationalityOptions, normalizedKey } from '../lib/filters'
+import { searchPeople } from '../lib/search'
+import { PROCESS_OPTIONS } from '../types/records'
+import type { RegistrationTarget } from '../App'
 
-const blankPerson: Person = { name: '', nationality: '', phone: '', email: '' }
+type SortOrder = 'recent' | 'name' | 'visits'
+const PAGE_SIZE = 50
 
-export function PeoplePage() {
-  const [people, setPeople] = useState<PersonWithHistory[]>([])
-  const [loadResult, setLoadResult] = useState<{
-    workspaceId: string
-    refreshVersion: number
-    error?: string
-  }>()
-  const [refreshVersion, setRefreshVersion] = useState(0)
+interface PeoplePageProps {
+  onOpenPerson: (personId: string) => void
+  onRegister: (target: RegistrationTarget) => void
+}
+
+export function PeoplePage({ onOpenPerson, onRegister }: PeoplePageProps) {
+  const { language, t } = useI18n()
+  const locale = getLocale(language)
+  const { people, loading, error } = useAttendanceData()
   const [query, setQuery] = useState('')
   const [nationality, setNationality] = useState('')
   const [process, setProcess] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [historyPerson, setHistoryPerson] = useState<PersonWithHistory | null>(null)
-  const [editing, setEditing] = useState<Person>(blankPerson)
-  const [formError, setFormError] = useState('')
-  const { user } = useAuth()
-  const { access } = useWorkspace()
-  const { language, t } = useI18n()
-  const workspaceId = access.status === 'active' ? access.membership.workspace_id : undefined
-  const isAdmin = access.status === 'active' && access.membership.role === 'admin'
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [sort, setSort] = useState<SortOrder>('recent')
+  const [visible, setVisible] = useState(PAGE_SIZE)
 
-  useEffect(() => {
-    if (!workspaceId) return
-    let active = true
-    void getAllSharedPeople(workspaceId).then(
-      (result) => {
-        if (active) {
-          setPeople(result)
-          setLoadResult({ workspaceId, refreshVersion })
-        }
-      },
-      (caught: unknown) => {
-        if (active) {
-          setLoadResult({
-            workspaceId,
-            refreshVersion,
-            error: caught instanceof Error ? caught.message : 'No se pudieron cargar las personas.',
-          })
-        }
-      },
-    )
-    return () => {
-      active = false
-    }
-  }, [workspaceId, refreshVersion])
-  const loaded = loadResult?.workspaceId === workspaceId &&
-    loadResult?.refreshVersion === refreshVersion
-  const loading = Boolean(workspaceId) && !loaded
-  const loadError = loaded ? loadResult?.error ?? '' : ''
-
-  const nationalities = useMemo(
-    () => [...new Set(people.map(({ nationality: value }) => value).filter(Boolean))].sort(),
-    [people],
-  )
-  const filteredPeople = useMemo(() => {
-    const term = query.trim().toLocaleLowerCase()
-    return people.filter((person) => {
-      const textMatches = !term || [person.name, person.phone, person.email]
-        .some((value) => value.toLocaleLowerCase().includes(term))
-      const nationalityMatches = !nationality || person.nationality === nationality
-      const attendanceMatches = person.appointments.some(({ date, process: itemProcess }) =>
-        (!process || itemProcess === process) &&
-        (!startDate || date >= startDate) &&
-        (!endDate || date <= endDate),
-      )
-      const hasAttendanceFilter = Boolean(process || startDate || endDate)
-      return textMatches && nationalityMatches && (!hasAttendanceFilter || attendanceMatches)
+  const nationalities = useMemo(() => nationalityOptions(people), [people])
+  const filtered = useMemo(() => {
+    const byNationality = nationality
+      ? people.filter((person) => normalizedKey(person.nationality) === normalizedKey(nationality))
+      : people
+    // Proceso y fechas se aplican juntos: alguna atención de ese proceso dentro del rango.
+    const byAttendance = process || from || to
+      ? byNationality.filter((person) => person.appointments.some((item) =>
+          (!process || item.process === process) &&
+          (!from || item.date >= from) &&
+          (!to || item.date <= to)))
+      : byNationality
+    const matched = searchPeople(byAttendance, query)
+    // Con búsqueda, el orden lo da la relevancia; sin ella, el orden elegido.
+    if (query.trim()) return matched
+    return [...matched].sort((a, b) => {
+      if (sort === 'name') return a.name.localeCompare(b.name)
+      if (sort === 'visits') return b.appointments.length - a.appointments.length || a.name.localeCompare(b.name)
+      return (b.lastAppointment?.date ?? '').localeCompare(a.lastAppointment?.date ?? '') || a.name.localeCompare(b.name)
     })
-  }, [people, query, nationality, process, startDate, endDate])
+  }, [from, nationality, people, process, query, sort, to])
 
-  async function saveEditedPerson(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setFormError('')
-    try {
-      if (!workspaceId || !user) throw new Error('No hay una sesión activa en el espacio de trabajo.')
-      await updateSharedPerson(workspaceId, user.id, editing)
-      setEditing(blankPerson)
-      setRefreshVersion((version) => version + 1)
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'No se pudieron guardar los cambios.')
-    }
-  }
+  const hasFilters = Boolean(query || nationality || process || from || to)
 
-  async function removePerson(person: PersonWithHistory) {
-    if (!isAdmin || typeof person.id !== 'string' || !window.confirm(t('¿Eliminar a {name} y todas sus atenciones? Esta acción no se puede deshacer.', { name: person.name }))) return
-    try {
-      if (!workspaceId) throw new Error('No hay un espacio de trabajo activo.')
-      await deleteSharedPerson(workspaceId, person.id)
-      setRefreshVersion((version) => version + 1)
-      if (historyPerson?.id === person.id) setHistoryPerson(null)
-    } catch (error) {
-      window.alert(error instanceof Error ? t(error.message) : t('No se pudo eliminar la persona.'))
-    }
+  function exportCsv() {
+    downloadCsv(
+      `personas-${localDate()}.csv`,
+      [t('Nombre'), t('Nacionalidad'), t('Teléfono'), t('Correo'), t('Atenciones'), t('Primera visita'), t('Última visita')],
+      filtered.map((person) => [
+        person.name,
+        person.nationality,
+        person.phone,
+        person.email,
+        person.appointments.length,
+        person.appointments.length ? formatDate(person.appointments[person.appointments.length - 1].date, locale) : '',
+        person.lastAppointment ? formatDate(person.lastAppointment.date, locale) : '',
+      ]),
+    )
   }
 
   return (
-    <div className="page-stack">
-      <SectionTitle eyebrow={t('DIRECTORIO')} title={t('Personas registradas')} description={t('{count} {item} en el espacio compartido.', { count: people.length, item: t(people.length === 1 ? 'persona guardada' : 'personas guardadas') })} />
-      {loadError && <p className="form-message form-message--error" role="alert">{t(loadError)}</p>}
-      <div className="filter-panel surface-card">
-        <label className="search-box search-box--compact"><Search size={18} /><input onChange={(event) => setQuery(event.target.value)} placeholder={t('Buscar por nombre, teléfono o correo')} value={query} /></label>
-        <label className="field field--filter"><span>{t('Nacionalidad')}</span><select onChange={(event) => setNationality(event.target.value)} value={nationality}><option value="">{t('Todas')}</option>{nationalities.map((value) => <option key={value}>{value}</option>)}</select></label>
-        <label className="field field--filter"><span>{t('Proceso')}</span><select onChange={(event) => setProcess(event.target.value)} value={process}><option value="">{t('Todos')}</option>{PROCESS_OPTIONS.map((item) => <option key={item} value={item}>{getProcessLabel(item, language)}</option>)}</select></label>
-        <label className="field field--filter"><span>{t('Desde')}</span><input onChange={(event) => setStartDate(event.target.value)} type="date" value={startDate} /></label>
-        <label className="field field--filter"><span>{t('Hasta')}</span><input onChange={(event) => setEndDate(event.target.value)} type="date" value={endDate} /></label>
+    <div className="page">
+      <PageHeader
+        title={t('Personas')}
+        description={loading ? t('Cargando…') : t('{count} personas registradas', { count: people.length })}
+        actions={
+          <>
+            <button className="button button--secondary" disabled={!filtered.length} onClick={exportCsv} type="button"><Download size={16} aria-hidden="true" />{t('Exportar CSV')}</button>
+            <button className="button button--primary" onClick={() => onRegister({})} type="button"><Plus size={16} aria-hidden="true" />{t('Persona nueva')}</button>
+          </>
+        }
+      />
+      {error && <p className="message message--error" role="alert">{t(error)}</p>}
+
+      <div className="toolbar">
+        <label className="search-field">
+          <Search size={18} aria-hidden="true" />
+          <span className="visually-hidden">{t('Buscar')}</span>
+          <input onChange={(event) => { setQuery(event.target.value); setVisible(PAGE_SIZE) }} placeholder={t('Buscar por nombre, teléfono o correo')} type="search" value={query} />
+        </label>
+        <label className="field field--compact">
+          <span>{t('Nacionalidad')}</span>
+          <select onChange={(event) => { setNationality(event.target.value); setVisible(PAGE_SIZE) }} value={nationality}>
+            <option value="">{t('Todas')}</option>
+            {nationalities.map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
+        <label className="field field--compact">
+          <span>{t('Algún trámite de')}</span>
+          <select onChange={(event) => { setProcess(event.target.value); setVisible(PAGE_SIZE) }} value={process}>
+            <option value="">{t('Cualquier proceso')}</option>
+            {PROCESS_OPTIONS.map((item) => <option key={item} value={item}>{getProcessLabel(item, language)}</option>)}
+          </select>
+        </label>
+        <label className="field field--compact">
+          <span>{t('Con atención desde')}</span>
+          <input max={to || undefined} onChange={(event) => { setFrom(event.target.value); setVisible(PAGE_SIZE) }} type="date" value={from} />
+        </label>
+        <label className="field field--compact">
+          <span>{t('Hasta')}</span>
+          <input min={from || undefined} onChange={(event) => { setTo(event.target.value); setVisible(PAGE_SIZE) }} type="date" value={to} />
+        </label>
+        <label className="field field--compact">
+          <span>{t('Ordenar por')}</span>
+          <select disabled={Boolean(query.trim())} onChange={(event) => setSort(event.target.value as SortOrder)} value={sort}>
+            <option value="recent">{t('Visita más reciente')}</option>
+            <option value="name">{t('Nombre')}</option>
+            <option value="visits">{t('Más atenciones')}</option>
+          </select>
+        </label>
       </div>
-      <div className="result-caption"><span>{t('{count} resultados', { count: filteredPeople.length })}</span><button className="text-button" onClick={() => { setQuery(''); setNationality(''); setProcess(''); setStartDate(''); setEndDate('') }} type="button">{t('Limpiar filtros')}</button></div>
-      <div className="surface-card table-card">
-        {loading ? <div className="empty-state"><strong>{t('Cargando personas del espacio compartido…')}</strong></div> : filteredPeople.length ? (
-          <div className="table-scroll">
-            <table className="people-table">
-              <thead><tr><th>{t('Persona')}</th><th>{t('Contacto')}</th><th>{t('Última atención')}</th><th>{t('Atenciones')}</th><th>{t('Acciones')}</th></tr></thead>
-              <tbody>
-                {filteredPeople.map((person) => (
-                  <tr key={person.id}>
-                    <td><div className="table-person"><span className="avatar avatar--small">{person.name.slice(0, 1).toLocaleUpperCase()}</span><span><strong>{person.name}</strong><small>{person.nationality}</small></span></div></td>
-                    <td><span className="contact-lines">{person.phone && <span><Phone size={13} />{person.phone}</span>}{person.email && <span><Mail size={13} />{person.email}</span>}</span></td>
-                    <td>{person.lastAppointment ? <span className="date-cell"><CalendarDays size={14} />{new Date(`${person.lastAppointment.date}T12:00:00`).toLocaleDateString(getLocale(language))}</span> : '—'}</td>
-                    <td><span className="count-badge">{person.appointments.length}</span></td>
-                    <td><div className="table-actions"><button aria-label={t('Ver historial de {name}', { name: person.name })} className="icon-button" onClick={() => setHistoryPerson(person)} title={t('Ver historial')} type="button"><CalendarDays size={17} /></button>{(isAdmin || person.createdBy === user?.id) && <button aria-label={t('Editar {name}', { name: person.name })} className="icon-button" onClick={() => { setEditing({ id: person.id, name: capitalizeWords(person.name), nationality: capitalizeWords(person.nationality), phone: person.phone, email: person.email }); setFormError('') }} title={t('Editar')} type="button"><Pencil size={16} /></button>}{isAdmin && <button aria-label={t('Eliminar {name}', { name: person.name })} className="icon-button icon-button--danger" onClick={() => void removePerson(person)} title={t('Eliminar')} type="button"><Trash2 size={16} /></button>}</div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : <div className="empty-state"><span className="empty-state__icon"><UsersRound size={22} /></span><strong>{t('No hay resultados para estos filtros')}</strong><p>{t('Prueba a cambiar los criterios de búsqueda.')}</p></div>}
+
+      <div className="result-line">
+        <span>{t(filtered.length === 1 ? '{count} persona' : '{count} personas', { count: filtered.length })}</span>
+        {hasFilters && (
+          <button className="link-button" onClick={() => { setQuery(''); setNationality(''); setProcess(''); setFrom(''); setTo('') }} type="button">
+            <X size={14} aria-hidden="true" />{t('Quitar filtros')}
+          </button>
+        )}
       </div>
-      {historyPerson && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setHistoryPerson(null) }} role="presentation">
-          <section aria-labelledby="history-title" aria-modal="true" className="modal-card" role="dialog">
-            <div className="modal-heading"><div><p className="eyebrow">{t('HISTORIAL COMPLETO')}</p><h2 id="history-title">{historyPerson.name}</h2><p>{historyPerson.nationality} · {t('{count} atenciones', { count: historyPerson.appointments.length })}</p></div><button aria-label={t('Cerrar historial')} className="icon-button" onClick={() => setHistoryPerson(null)} type="button"><X size={18} /></button></div>
-            <HistoryList appointments={historyPerson.appointments} />
-          </section>
-        </div>
-      )}
-      {editing.id && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditing(blankPerson) }} role="presentation">
-          <form className="modal-card edit-form" onSubmit={saveEditedPerson}>
-            <div className="modal-heading"><div><p className="eyebrow">{t('DATOS PERSONALES')}</p><h2>{t('Editar persona')}</h2></div><button aria-label={t('Cerrar edición')} className="icon-button" onClick={() => setEditing(blankPerson)} type="button"><X size={18} /></button></div>
-            <label className="field"><span>{t('Nombre completo *')}</span><input autoCapitalize="words" maxLength={120} onChange={(event) => setEditing((current) => ({ ...current, name: capitalizeWords(event.target.value) }))} required value={editing.name} /></label>
-            <label className="field"><span>{t('Nacionalidad *')}</span><input autoCapitalize="words" maxLength={80} onChange={(event) => setEditing((current) => ({ ...current, nationality: capitalizeWords(event.target.value) }))} required value={editing.nationality} /></label>
-            <label className="field"><span>{t('Teléfono')}</span><input maxLength={40} onChange={(event) => setEditing({ ...editing, phone: event.target.value })} type="tel" value={editing.phone} /></label>
-            <label className="field"><span>{t('Correo electrónico')}</span><input maxLength={160} onChange={(event) => setEditing({ ...editing, email: event.target.value })} type="email" value={editing.email} /></label>
-            {formError && <p className="form-message form-message--error" role="alert">{t(formError)}</p>}
-            <div className="form-actions"><button className="button button--primary" type="submit">{t('Guardar cambios')}</button><button className="button button--ghost" onClick={() => setEditing(blankPerson)} type="button">{t('Cancelar')}</button></div>
-          </form>
+
+      {loading ? (
+        <p className="muted">{t('Cargando…')}</p>
+      ) : filtered.length ? (
+        <>
+          <table className="data-table data-table--people">
+            <thead>
+              <tr>
+                <th scope="col">{t('Persona')}</th>
+                <th scope="col">{t('Contacto')}</th>
+                <th scope="col">{t('Última visita')}</th>
+                <th className="data-table__number" scope="col">{t('Atenciones')}</th>
+                <th scope="col"><span className="visually-hidden">{t('Acciones')}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.slice(0, visible).map((person) => (
+                <tr key={person.id}>
+                  <td>
+                    <button className="row-link" onClick={() => onOpenPerson(String(person.id))} type="button">
+                      <span className="avatar" aria-hidden="true">{person.name.slice(0, 1).toLocaleUpperCase()}</span>
+                      <span><strong>{person.name}</strong><small>{person.nationality}</small></span>
+                    </button>
+                  </td>
+                  <td className="data-table__contact">
+                    {person.phone && <span>{person.phone}</span>}
+                    {person.email && <span>{person.email}</span>}
+                    {!person.phone && !person.email && <span className="muted">—</span>}
+                  </td>
+                  <td data-label={t('Última visita')}>{person.lastAppointment ? relativeDay(person.lastAppointment.date, locale, t) : '—'}</td>
+                  <td className="data-table__number" data-label={t('Atenciones')}>{person.appointments.length}</td>
+                  <td className="data-table__action">
+                    <button className="button button--secondary button--small" onClick={() => onRegister({ person })} type="button">
+                      <Plus size={14} aria-hidden="true" />{t('Atención')}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {visible < filtered.length && (
+            <button className="button button--quiet button--block" onClick={() => setVisible((count) => count + PAGE_SIZE)} type="button">
+              {t('Mostrar {count} más', { count: Math.min(PAGE_SIZE, filtered.length - visible) })}
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="empty">
+          {people.length ? (
+            <>
+              <p>{t('Nadie coincide con la búsqueda o los filtros.')}</p>
+              {query.trim() && (
+                <button className="button button--primary" onClick={() => onRegister({ name: query.trim() })} type="button">
+                  <Plus size={16} aria-hidden="true" />{t('Registrar a «{name}» como persona nueva', { name: query.trim() })}
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <p>{t('Todavía no hay personas. Aparecen aquí al registrar su primera atención.')}</p>
+              <button className="button button--primary" onClick={() => onRegister({})} type="button"><Plus size={16} aria-hidden="true" />{t('Registrar atención')}</button>
+            </>
+          )}
         </div>
       )}
     </div>

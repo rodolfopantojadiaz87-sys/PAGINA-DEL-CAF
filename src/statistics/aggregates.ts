@@ -1,4 +1,4 @@
-import type { Appointment, Person } from '../types/records'
+import type { Appointment, PersonWithHistory } from '../types/records'
 
 export interface CountItem {
   label: string
@@ -6,46 +6,26 @@ export interface CountItem {
   percentage: number
 }
 
-export interface ReportSummary {
-  year: number
-  semester: 1 | 2
-  peopleCount: number
-  appointmentCount: number
-  processCount: number
-  nationalities: CountItem[]
-  processes: CountItem[]
-}
-
-interface NationalityCount {
-  label: string
+export interface MonthItem {
+  /** AAAA-MM */
+  month: string
   count: number
 }
 
-function addNationalityCount(
-  counts: Map<string, NationalityCount>,
-  value: string,
-): void {
-  const label = value.trim() || 'Sin especificar'
-  const key = label.toLocaleLowerCase()
-  const existing = counts.get(key)
-  if (existing) {
-    existing.count += 1
-  } else {
-    counts.set(key, { label, count: 1 })
-  }
-}
-
-function nationalitiesToItems(
-  counts: Map<string, NationalityCount>,
-  denominator: number,
-): CountItem[] {
-  return [...counts.values()]
-    .map(({ label, count }) => ({
-      label,
-      count,
-      percentage: denominator ? (count / denominator) * 100 : 0,
-    }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+export interface AttendanceSummary {
+  /** Personas distintas atendidas en el conjunto. */
+  peopleCount: number
+  /** Personas cuya primera atención registrada cae dentro del conjunto. */
+  newPeopleCount: number
+  appointmentCount: number
+  /** Personas distintas por nacionalidad. */
+  nationalities: CountItem[]
+  /** Atenciones por proceso. */
+  processes: CountItem[]
+  /** Atenciones por colaborador. */
+  collaborators: CountItem[]
+  /** Atenciones por mes, en orden cronológico y sin huecos. */
+  months: MonthItem[]
 }
 
 export function getSemesterRange(
@@ -57,93 +37,92 @@ export function getSemesterRange(
     : { start: `${year}-07-01`, end: `${year}-12-31` }
 }
 
-export function createSummary(
-  people: Person[],
-  appointments: Appointment[],
-  year: number,
-  semester: 1 | 2,
-): ReportSummary {
-  const { start, end } = getSemesterRange(year, semester)
-  const scopedAppointments = appointments.filter(
-    ({ date }) => date >= start && date <= end,
-  )
-  const attendedIds = new Set(scopedAppointments.map(({ personId }) => personId))
-  const attendedPeople = people.filter(
-    (person) => person.id !== undefined && attendedIds.has(person.id),
-  )
-  const peopleById = new Set(attendedPeople.map((person) => person.id))
-  const nationalityCounts = new Map<string, NationalityCount>()
-  for (const person of attendedPeople) {
-    addNationalityCount(nationalityCounts, person.nationality)
-  }
-
-  const processCounts = new Map<string, number>()
-  for (const appointment of scopedAppointments) {
-    processCounts.set(
-      appointment.process,
-      (processCounts.get(appointment.process) ?? 0) + 1,
-    )
-  }
-
-  const countItems = (
-    counts: Map<string, number>,
-    denominator: number,
-  ): CountItem[] =>
-    [...counts]
-      .map(([label, count]) => ({
-        label,
-        count,
-        percentage: denominator ? (count / denominator) * 100 : 0,
-      }))
-      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-
-  return {
-    year,
-    semester,
-    peopleCount: peopleById.size,
-    appointmentCount: scopedAppointments.length,
-    processCount: scopedAppointments.length,
-    nationalities: nationalitiesToItems(nationalityCounts, peopleById.size),
-    processes: countItems(processCounts, scopedAppointments.length),
-  }
+function toItems(counts: Map<string, { label: string; count: number }>, total: number): CountItem[] {
+  return [...counts.values()]
+    .map(({ label, count }) => ({
+      label,
+      count,
+      percentage: total ? (count / total) * 100 : 0,
+    }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
 }
 
-export function createAllTimeSummary(
-  people: Person[],
-  appointments: Appointment[],
-): Omit<ReportSummary, 'year' | 'semester'> {
-  const attendedIds = new Set(appointments.map(({ personId }) => personId))
-  const nationalityCounts = new Map<string, NationalityCount>()
-  for (const person of people) {
-    if (person.id !== undefined && attendedIds.has(person.id)) {
-      addNationalityCount(nationalityCounts, person.nationality)
+function increment(counts: Map<string, { label: string; count: number }>, key: string, label: string) {
+  const existing = counts.get(key)
+  if (existing) existing.count += 1
+  else counts.set(key, { label, count: 1 })
+}
+
+function monthsBetween(first: string, last: string): string[] {
+  const months: string[] = []
+  let [year, month] = first.split('-').map(Number)
+  const [lastYear, lastMonth] = last.split('-').map(Number)
+  while (year < lastYear || (year === lastYear && month <= lastMonth)) {
+    months.push(`${year}-${String(month).padStart(2, '0')}`)
+    month += 1
+    if (month > 12) {
+      month = 1
+      year += 1
     }
   }
-  const processCounts = new Map<string, number>()
-  for (const appointment of appointments) {
-    processCounts.set(
-      appointment.process,
-      (processCounts.get(appointment.process) ?? 0) + 1,
-    )
+  return months
+}
+
+/**
+ * Resume un conjunto de atenciones (normalmente ya filtrado).
+ * Las personas se cuentan una sola vez; las atenciones y procesos, una por visita.
+ */
+export function summarizeAttendances(
+  appointments: Appointment[],
+  peopleById: Map<string, PersonWithHistory>,
+  /** Si el periodo tiene inicio y fin, se muestran todos sus meses, aunque estén vacíos. */
+  range?: { from: string; to: string },
+): AttendanceSummary {
+  const personIds = new Set(appointments.map(({ personId }) => String(personId)))
+  const ids = new Set(appointments.map((appointment) => String(appointment.id)))
+
+  const nationalities = new Map<string, { label: string; count: number }>()
+  let newPeopleCount = 0
+  for (const personId of personIds) {
+    const person = peopleById.get(personId)
+    const label = person?.nationality.trim() || 'Sin especificar'
+    increment(nationalities, label.toLocaleLowerCase(), label)
+    // El historial está ordenado de más reciente a más antiguo: la primera visita es la última.
+    const firstVisit = person?.appointments[person.appointments.length - 1]
+    if (firstVisit && ids.has(String(firstVisit.id))) newPeopleCount += 1
   }
-  const toItems = (counts: Map<string, number>, total: number) =>
-    [...counts]
-      .map(([label, count]) => ({
-        label,
-        count,
-        percentage: total ? (count / total) * 100 : 0,
+
+  const processes = new Map<string, { label: string; count: number }>()
+  const collaborators = new Map<string, { label: string; count: number }>()
+  const monthCounts = new Map<string, number>()
+  for (const appointment of appointments) {
+    increment(processes, appointment.process, appointment.process)
+    increment(
+      collaborators,
+      appointment.createdBy ?? 'sin-registro',
+      appointment.creatorName ?? 'Sin registro',
+    )
+    const month = appointment.date.slice(0, 7)
+    monthCounts.set(month, (monthCounts.get(month) ?? 0) + 1)
+  }
+
+  const sortedMonths = [...monthCounts.keys()].sort()
+  const first = range?.from && range.to ? range.from.slice(0, 7) : sortedMonths[0]
+  const last = range?.from && range.to ? range.to.slice(0, 7) : sortedMonths[sortedMonths.length - 1]
+  const months = first && last
+    ? monthsBetween(first, last).map((month) => ({
+        month,
+        count: monthCounts.get(month) ?? 0,
       }))
-      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    : []
 
   return {
-    peopleCount: new Set(
-      people
-        .filter((person) => person.id !== undefined && attendedIds.has(person.id))
-        .map((person) => person.id),
-    ).size,
+    peopleCount: personIds.size,
+    newPeopleCount,
     appointmentCount: appointments.length,
-    processCount: appointments.length,
-    nationalities: nationalitiesToItems(nationalityCounts, attendedIds.size),
-    processes: toItems(processCounts, appointments.length),
+    nationalities: toItems(nationalities, personIds.size),
+    processes: toItems(processes, appointments.length),
+    collaborators: toItems(collaborators, appointments.length),
+    months,
   }
 }
