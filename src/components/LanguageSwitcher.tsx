@@ -1,19 +1,17 @@
 import { useI18n } from '../i18n'
+import { SelectField } from './SelectField'
 
 export function LanguageSwitcher() {
   const { language, setLanguage, t } = useI18n()
 
   return (
-    <label className="language-switcher">
-      <span className="visually-hidden">{t('Idioma')}</span>
-      <select
-        aria-label={t('Idioma')}
-        onChange={(event) => setLanguage(event.target.value === 'pt' ? 'pt' : 'es')}
-        value={language}
-      >
-        <option value="es">{t('Español')}</option>
-        <option value="pt">{t('Português')}</option>
-      </select>
-    </label>
+    <SelectField
+      className="w-36"
+      hideLabel
+      label={t('Idioma')}
+      onChange={(value) => setLanguage(value === 'pt' ? 'pt' : 'es')}
+      options={[{ value: 'es', label: t('Español') }, { value: 'pt', label: t('Português') }]}
+      value={language}
+    />
   )
 }

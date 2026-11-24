@@ -1,10 +1,16 @@
+import path from 'node:path'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  resolve: {
+    alias: { '@': path.resolve(import.meta.dirname, './src') },
+  },
   plugins: [
     react(),
+    tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
@@ -20,7 +26,7 @@ export default defineConfig({
         description: 'Registro compartido de personas y atenciones.',
         lang: 'es',
         theme_color: '#1b2f6b',
-        background_color: '#f5f7fb',
+        background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
         icons: [

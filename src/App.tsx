@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useState } from 'react'
-import './App.css'
+import { LoaderCircle } from 'lucide-react'
 import { useAuth } from './auth/useAuth'
 import { useWorkspace } from './auth/useWorkspace'
 import { AppShell } from './components/AppShell'
@@ -117,7 +117,7 @@ export function WorkspaceApp() {
         userEmail={user?.email ?? undefined}
         userName={userName}
       >
-        <Suspense fallback={<p className="loading" role="status">{t('Cargando…')}</p>}>
+        <Suspense fallback={<p className="text-sm text-muted-foreground" role="status">{t('Cargando…')}</p>}>
           {renderPage()}
         </Suspense>
       </AppShell>
@@ -138,18 +138,28 @@ function App() {
   const { access } = useWorkspace()
 
   if (loading) {
-    return <div className="splash"><p className="loading" role="status">{t('Verificando sesión…')}</p></div>
+    return <Splash text={t('Verificando sesión…')} />
   }
 
   if (!configured || !session || passwordRecovery) return <LoginPage />
 
   if (access.status === 'loading' || access.status === 'no-session') {
-    return <div className="splash"><p className="loading" role="status">{t('Comprobando tu acceso…')}</p></div>
+    return <Splash text={t('Comprobando tu acceso…')} />
   }
 
   if (access.status !== 'active') return <WorkspaceGatePage />
 
   return <WorkspaceApp />
+}
+
+function Splash({ text }: { text: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-muted/40">
+      <p className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
+        <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />{text}
+      </p>
+    </div>
+  )
 }
 
 export default App

@@ -1,8 +1,17 @@
-import { useMemo, useState, type CSSProperties, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { Check, Pencil, Plus, UserRound } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils'
 import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
+import { FormAlert } from '../components/FormAlert'
 import { PageHeader } from '../components/PageHeader'
+import { PersonAvatar } from '../components/PersonAvatar'
 import { useAttendanceData } from '../hooks/useAttendanceData'
 import { getLocale, getProcessLabel, useI18n } from '../i18n'
 import { addDays, formatDate, localDate, relativeDay } from '../lib/dates'
@@ -132,139 +141,172 @@ export function RegistrationPage({ selectedPerson, initialName, onOpenPerson, on
 
   if (saved) {
     return (
-      <div className="page page--narrow">
-        <section className="done" role="status">
-          <span className="done__icon" aria-hidden="true"><Check size={28} /></span>
-          <h1>{t('Atención guardada')}</h1>
-          <p>{t('Se añadió al historial de {name}.', { name: saved.name })}</p>
-          <div className="button-row">
-            <button className="button button--primary" onClick={onRegisterAnother} type="button"><Plus size={17} aria-hidden="true" />{t('Registrar otra atención')}</button>
+      <div className="mx-auto max-w-2xl">
+        <Card className="items-center py-10 text-center" role="status">
+          <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"><Check className="size-7" /></span>
+          <div className="space-y-1 px-6">
+            <h1 className="text-xl font-semibold">{t('Atención guardada')}</h1>
+            <p className="text-sm text-muted-foreground">{t('Se añadió al historial de {name}.', { name: saved.name })}</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-2 px-6">
+            <Button onClick={onRegisterAnother}><Plus aria-hidden="true" />{t('Registrar otra atención')}</Button>
             {saved.personId && (
-              <button className="button button--secondary" onClick={() => onOpenPerson(saved.personId!)} type="button">{t('Ver ficha de {name}', { name: saved.name.split(' ')[0] })}</button>
+              <Button onClick={() => onOpenPerson(saved.personId!)} variant="outline">{t('Ver ficha de {name}', { name: saved.name.split(' ')[0] })}</Button>
             )}
           </div>
-        </section>
+        </Card>
       </div>
     )
   }
 
   const showPersonFields = !person || editingPerson
+  const required = <span aria-hidden="true" className="text-destructive" title={t('obligatorio')}>*</span>
+  const field = (id: string, label: ReactNode, input: ReactNode, wide = false) => (
+    <div className={cn('grid gap-2', wide && 'sm:col-span-2')}>
+      <Label htmlFor={id}>{label}</Label>
+      {input}
+    </div>
+  )
 
   return (
-    <div className="page page--narrow">
+    <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader title={t('Registrar atención')} description={t('Indica quién vino y qué trámite se hizo.')} />
 
-      <form className="form" onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void submit() }}>
-        <fieldset className="form__group">
-          <legend>{t('Persona')}</legend>
-
-          {person && (
-            <div className="person-card">
-              <span className="avatar avatar--large" aria-hidden="true">{person.name.slice(0, 1).toLocaleUpperCase()}</span>
-              <div className="person-card__text">
-                <strong>{person.name}</strong>
-                <span>{[person.nationality, person.phone, person.email].filter(Boolean).join(', ')}</span>
-                <small>
-                  {person.lastAppointment
-                    ? t('{count} atenciones, la última {date}', { count: person.appointments.length, date: relativeDay(person.lastAppointment.date, locale, t) })
-                    : t('Sin atenciones anteriores')}
-                </small>
-              </div>
-              <div className="person-card__actions">
-                {canEditPerson && !editingPerson && (
-                  <button className="button button--quiet button--small" onClick={() => setEditingPerson(true)} type="button"><Pencil size={14} aria-hidden="true" />{t('Editar datos')}</button>
-                )}
-                <button className="button button--quiet button--small" onClick={() => choosePerson(undefined)} type="button"><UserRound size={14} aria-hidden="true" />{t('Cambiar persona')}</button>
-              </div>
-            </div>
-          )}
-
-          {showPersonFields && (
-            <div className="form__grid">
-              <label className="field field--wide">
-                <span>{t('Nombre completo')} <abbr title={t('obligatorio')}>*</abbr></span>
-                <input autoCapitalize="words" autoComplete="off" autoFocus={!person} maxLength={120} onChange={(event) => updateField('name', capitalizeWords(event.target.value))} placeholder={t('Ej. María González')} required value={fields.name} />
-              </label>
-              {similar.length > 0 && (
-                <div className="similar field--wide" aria-live="polite">
-                  <p>{t('Ya hay personas con un nombre parecido. ¿Es alguna de ellas?')}</p>
-                  <ul>
-                    {similar.map((candidate) => (
-                      <li key={candidate.id}>
-                        <button className="similar__option" onClick={() => choosePerson(candidate)} type="button">
-                          <strong>{candidate.name}</strong>
-                          <span>{[candidate.nationality, candidate.phone].filter(Boolean).join(', ')}</span>
-                          <em>{t('Usar esta persona')}</em>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+      <form className="space-y-4" onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void submit() }}>
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>{t('Persona')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {person && (
+              <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/40 p-3">
+                <PersonAvatar className="size-11" name={person.name} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{person.name}</p>
+                  <p className="truncate text-sm text-muted-foreground">{[person.nationality, person.phone, person.email].filter(Boolean).join(', ')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {person.lastAppointment
+                      ? t('{count} atenciones, la última {date}', { count: person.appointments.length, date: relativeDay(person.lastAppointment.date, locale, t) })
+                      : t('Sin atenciones anteriores')}
+                  </p>
                 </div>
-              )}
-              <label className="field">
-                <span>{t('Nacionalidad')} <abbr title={t('obligatorio')}>*</abbr></span>
-                <input autoCapitalize="words" list="nationality-options" maxLength={80} onChange={(event) => updateField('nationality', capitalizeWords(event.target.value))} placeholder={t('Ej. Venezuela')} required value={fields.nationality} />
-                <datalist id="nationality-options">{nationalities.map((value) => <option key={value} value={value} />)}</datalist>
-              </label>
-              <label className="field">
-                <span>{t('Teléfono')}</span>
-                <input autoComplete="off" inputMode="tel" maxLength={40} onChange={(event) => updateField('phone', event.target.value)} placeholder="+55 92 99999-9999" type="tel" value={fields.phone} />
-              </label>
-              <label className="field field--wide">
-                <span>{t('Correo electrónico')}</span>
-                <input autoComplete="off" maxLength={160} onChange={(event) => updateField('email', event.target.value)} placeholder="nombre@correo.com" type="email" value={fields.email} />
-              </label>
-            </div>
-          )}
-        </fieldset>
+                <div className="flex gap-1">
+                  {canEditPerson && !editingPerson && (
+                    <Button onClick={() => setEditingPerson(true)} size="sm" type="button" variant="ghost"><Pencil aria-hidden="true" />{t('Editar datos')}</Button>
+                  )}
+                  <Button onClick={() => choosePerson(undefined)} size="sm" type="button" variant="ghost"><UserRound aria-hidden="true" />{t('Cambiar persona')}</Button>
+                </div>
+              </div>
+            )}
 
-        <fieldset className="form__group">
-          <legend>{t('Proceso')} <abbr title={t('obligatorio')}>*</abbr></legend>
-          <div className="process-picker">
-            {PROCESS_OPTIONS.map((option) => (
-              <label className="process-option" key={option} style={{ '--process-color': processColor(option) } as CSSProperties}>
-                <input checked={process === option} name="process" onChange={() => { setProcess(option); setError('') }} type="radio" value={option} />
-                <span>{getProcessLabel(option, language)}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+            {showPersonFields && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {field('reg-name', <>{t('Nombre completo')} {required}</>, (
+                  <Input autoCapitalize="words" autoComplete="off" autoFocus={!person} id="reg-name" maxLength={120} onChange={(event) => updateField('name', capitalizeWords(event.target.value))} placeholder={t('Ej. María González')} required value={fields.name} />
+                ), true)}
+                {similar.length > 0 && (
+                  <div aria-live="polite" className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 sm:col-span-2">
+                    <p className="text-sm text-amber-900">{t('Ya hay personas con un nombre parecido. ¿Es alguna de ellas?')}</p>
+                    <ul className="space-y-1">
+                      {similar.map((candidate) => (
+                        <li key={candidate.id}>
+                          <button className="flex w-full items-center gap-3 rounded-md bg-background px-3 py-2 text-left text-sm shadow-xs transition-colors hover:bg-muted" onClick={() => choosePerson(candidate)} type="button">
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-medium">{candidate.name}</span>
+                              <span className="block truncate text-xs text-muted-foreground">{[candidate.nationality, candidate.phone].filter(Boolean).join(', ')}</span>
+                            </span>
+                            <span className="shrink-0 text-xs font-medium text-primary">{t('Usar esta persona')}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {field('reg-nationality', <>{t('Nacionalidad')} {required}</>, (
+                  <>
+                    <Input autoCapitalize="words" id="reg-nationality" list="nationality-options" maxLength={80} onChange={(event) => updateField('nationality', capitalizeWords(event.target.value))} placeholder={t('Ej. Venezuela')} required value={fields.nationality} />
+                    <datalist id="nationality-options">{nationalities.map((value) => <option key={value} value={value} />)}</datalist>
+                  </>
+                ))}
+                {field('reg-phone', t('Teléfono'), (
+                  <Input autoComplete="off" id="reg-phone" inputMode="tel" maxLength={40} onChange={(event) => updateField('phone', event.target.value)} placeholder="+55 92 99999-9999" type="tel" value={fields.phone} />
+                ))}
+                {field('reg-email', t('Correo electrónico'), (
+                  <Input autoComplete="off" id="reg-email" maxLength={160} onChange={(event) => updateField('email', event.target.value)} placeholder="nombre@correo.com" type="email" value={fields.email} />
+                ), true)}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        <fieldset className="form__group">
-          <legend>{t('Fecha de la atención')}</legend>
-          <div className="date-picker">
-            <button aria-pressed={date === today} className="chip" onClick={() => setDate(today)} type="button">{t('Hoy')}</button>
-            <button aria-pressed={date === yesterday} className="chip" onClick={() => setDate(yesterday)} type="button">{t('Ayer')}</button>
-            <label className="field field--compact">
-              <span className="visually-hidden">{t('Otra fecha')}</span>
-              <input max={today} onChange={(event) => setDate(event.target.value)} required type="date" value={date} />
-            </label>
-            <span className="muted">{formatDate(date, locale, 'long')}</span>
-          </div>
-        </fieldset>
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>{t('Proceso')} {required}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup
+              aria-label={t('Proceso')}
+              className="grid gap-2 sm:grid-cols-2"
+              onValueChange={(value) => { setProcess(value as ProcessType); setError('') }}
+              value={process}
+            >
+              {PROCESS_OPTIONS.map((option) => (
+                <Label
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 font-normal transition-colors hover:bg-muted/50 has-data-[state=checked]:border-primary has-data-[state=checked]:bg-primary/5"
+                  htmlFor={`process-${option}`}
+                  key={option}
+                >
+                  <RadioGroupItem id={`process-${option}`} value={option} />
+                  <span aria-hidden="true" className="size-2.5 rounded-full" style={{ background: processColor(option) }} />
+                  <span>{getProcessLabel(option, language)}</span>
+                </Label>
+              ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>{t('Fecha de la atención')}</CardTitle>
+            <CardDescription>{formatDate(date, locale, 'long')}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            <ToggleGroup
+              onValueChange={(value) => { if (value) setDate(value) }}
+              spacing={2}
+              type="single"
+              value={date === today || date === yesterday ? date : ''}
+              variant="outline"
+            >
+              <ToggleGroupItem className="data-[state=on]:border-primary data-[state=on]:bg-primary/5 data-[state=on]:text-primary" value={today}>{t('Hoy')}</ToggleGroupItem>
+              <ToggleGroupItem className="data-[state=on]:border-primary data-[state=on]:bg-primary/5 data-[state=on]:text-primary" value={yesterday}>{t('Ayer')}</ToggleGroupItem>
+            </ToggleGroup>
+            <Input aria-label={t('Otra fecha')} className="w-auto" max={today} onChange={(event) => setDate(event.target.value)} required type="date" value={date} />
+          </CardContent>
+        </Card>
 
         {duplicate && (
-          <div className="confirm confirm--warning" role="alert">
+          <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="alert">
             <p>
               <strong>{t('{name} ya está en el registro.', { name: duplicate.name })}</strong>{' '}
               {[duplicate.nationality, duplicate.phone, duplicate.email].filter(Boolean).join(', ')}
               {duplicate.lastAppointment && `. ${t('Última visita {date}', { date: formatDate(duplicate.lastAppointment.date, locale) })}`}
             </p>
             <p>{t('¿Es la misma persona?')}</p>
-            <div className="button-row">
-              <button className="button button--primary" disabled={saving} onClick={() => void submit({ useDuplicate: true })} type="button">{t('Sí, añadir a su historial')}</button>
-              <button className="button button--secondary" disabled={saving} onClick={() => void submit({ forceNew: true })} type="button">{t('No, es otra persona')}</button>
+            <div className="flex flex-wrap gap-2">
+              <Button disabled={saving} onClick={() => void submit({ useDuplicate: true })} type="button">{t('Sí, añadir a su historial')}</Button>
+              <Button disabled={saving} onClick={() => void submit({ forceNew: true })} type="button" variant="outline">{t('No, es otra persona')}</Button>
             </div>
           </div>
         )}
 
-        {error && <p className="message message--error" role="alert">{t(error)}</p>}
+        {error && <FormAlert>{t(error)}</FormAlert>}
 
         {!duplicate && (
-          <div className="form__submit">
-            <button className="button button--primary button--large" disabled={saving} type="submit">
-              <Check size={18} aria-hidden="true" />{saving ? t('Guardando…') : t('Guardar atención')}
-            </button>
+          <div className="flex justify-end">
+            <Button className="w-full sm:w-auto" disabled={saving} size="lg" type="submit">
+              <Check aria-hidden="true" />{saving ? t('Guardando…') : t('Guardar atención')}
+            </Button>
           </div>
         )}
       </form>

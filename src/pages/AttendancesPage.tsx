@@ -1,7 +1,14 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Download, FileText, Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useAuth } from '../auth/useAuth'
+import { EmptyState } from '../components/EmptyState'
 import { FilterBar } from '../components/FilterBar'
+import { FormAlert } from '../components/FormAlert'
 import { PageHeader } from '../components/PageHeader'
 import { ProcessTag } from '../components/ProcessTag'
 import { useAttendanceData } from '../hooks/useAttendanceData'
@@ -95,78 +102,80 @@ export function AttendancesPage({ filters, onFiltersChange, onOpenPerson }: Atte
   }
 
   return (
-    <div className="page">
+    <div className="space-y-6">
       <PageHeader
         title={t('Atenciones')}
         description={loading ? t('Cargando…') : t('{count} atenciones de {people} personas con estos filtros', { count: filtered.length, people: peopleCount })}
         actions={
           <>
-            <button className="button button--secondary" disabled={!filtered.length} onClick={exportCsv} type="button"><Download size={16} aria-hidden="true" />{t('Exportar CSV')}</button>
-            <button className="button button--secondary" disabled={!filtered.length || exporting} onClick={() => void exportPdf()} type="button"><FileText size={16} aria-hidden="true" />{exporting ? t('Generando…') : t('Exportar PDF')}</button>
+            <Button disabled={!filtered.length} onClick={exportCsv} variant="outline"><Download aria-hidden="true" />{t('Exportar CSV')}</Button>
+            <Button disabled={!filtered.length || exporting} onClick={() => void exportPdf()} variant="outline"><FileText aria-hidden="true" />{exporting ? t('Generando…') : t('Exportar PDF')}</Button>
           </>
         }
       />
-      {error && <p className="message message--error" role="alert">{t(error)}</p>}
-      {exportError && <p className="message message--error" role="alert">{t(exportError)}</p>}
+      {error && <FormAlert>{t(error)}</FormAlert>}
+      {exportError && <FormAlert>{t(exportError)}</FormAlert>}
 
       <FilterBar collaborators={collaborators} filters={filters} nationalities={nationalities} onChange={(next) => { onFiltersChange(next); setVisible(PAGE_SIZE) }} />
 
-      <label className="search-field search-field--inline">
-        <Search size={18} aria-hidden="true" />
-        <span className="visually-hidden">{t('Buscar persona en el listado')}</span>
-        <input onChange={(event) => { setQuery(event.target.value); setVisible(PAGE_SIZE) }} placeholder={t('Buscar persona en el listado')} type="search" value={query} />
-      </label>
+      <div className="relative max-w-md">
+        <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input aria-label={t('Buscar persona en el listado')} className="bg-background pl-9" onChange={(event) => { setQuery(event.target.value); setVisible(PAGE_SIZE) }} placeholder={t('Buscar persona en el listado')} type="search" value={query} />
+      </div>
 
       {loading ? (
-        <p className="muted">{t('Cargando…')}</p>
+        <div className="space-y-2">{[0, 1, 2, 3].map((key) => <Skeleton className="h-12 w-full" key={key} />)}</div>
       ) : filtered.length ? (
         <>
-          <table className="data-table data-table--log">
-            <thead>
-              <tr>
-                <th scope="col">{t('Persona')}</th>
-                <th scope="col">{t('Proceso')}</th>
-                <th scope="col">{t('Atendió')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((appointment, index) => {
-                const person = peopleById.get(String(appointment.personId))
-                const showDate = index === 0 || rows[index - 1].date !== appointment.date
-                return (
-                  <Fragment key={appointment.id}>
-                    {showDate && (
-                      <tr className="data-table__group">
-                        <th colSpan={3} scope="rowgroup">
-                          {relativeDay(appointment.date, locale, t)}
-                          {relativeDay(appointment.date, locale, t) !== formatDate(appointment.date, locale) && <span>{formatDate(appointment.date, locale)}</span>}
-                        </th>
-                      </tr>
-                    )}
-                    <tr>
-                      <td>
-                        <button className="row-link" onClick={() => onOpenPerson(String(appointment.personId))} type="button">
-                          <span><strong>{person?.name ?? t('Persona eliminada')}</strong><small>{person?.nationality}</small></span>
-                        </button>
-                      </td>
-                      <td><ProcessTag process={appointment.process} /></td>
-                      <td className="data-table__muted">{appointment.creatorName ?? '—'}</td>
-                    </tr>
-                  </Fragment>
-                )
-              })}
-            </tbody>
-          </table>
+          <Card className="gap-0 overflow-hidden py-0 shadow-none">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-4">{t('Persona')}</TableHead>
+                  <TableHead>{t('Proceso')}</TableHead>
+                  <TableHead className="hidden pr-4 sm:table-cell">{t('Atendió')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((appointment, index) => {
+                  const person = peopleById.get(String(appointment.personId))
+                  const showDate = index === 0 || rows[index - 1].date !== appointment.date
+                  const relative = relativeDay(appointment.date, locale, t)
+                  const full = formatDate(appointment.date, locale)
+                  return (
+                    <Fragment key={appointment.id}>
+                      {showDate && (
+                        <TableRow className="bg-muted/50 hover:bg-muted/50">
+                          <TableHead className="h-8 pl-4 text-xs font-medium" colSpan={3} scope="rowgroup">
+                            {relative}
+                            {relative !== full && <span className="ml-2 font-normal text-muted-foreground">{full}</span>}
+                          </TableHead>
+                        </TableRow>
+                      )}
+                      <TableRow>
+                        <TableCell className="pl-4">
+                          <button className="text-left" onClick={() => onOpenPerson(String(appointment.personId))} type="button">
+                            <span className="block font-medium hover:underline">{person?.name ?? t('Persona eliminada')}</span>
+                            <span className="block text-xs text-muted-foreground">{person?.nationality}</span>
+                          </button>
+                        </TableCell>
+                        <TableCell><ProcessTag process={appointment.process} /></TableCell>
+                        <TableCell className="hidden pr-4 text-muted-foreground sm:table-cell">{appointment.creatorName ?? '—'}</TableCell>
+                      </TableRow>
+                    </Fragment>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </Card>
           {visible < filtered.length && (
-            <button className="button button--quiet button--block" onClick={() => setVisible((count) => count + PAGE_SIZE)} type="button">
+            <Button className="w-full" onClick={() => setVisible((count) => count + PAGE_SIZE)} variant="outline">
               {t('Mostrar {count} más', { count: Math.min(PAGE_SIZE, filtered.length - visible) })}
-            </button>
+            </Button>
           )}
         </>
       ) : (
-        <div className="empty">
-          <p>{appointments.length ? t('No hay atenciones con estos filtros. Prueba con otro periodo.') : t('Todavía no hay atenciones registradas.')}</p>
-        </div>
+        <EmptyState>{appointments.length ? t('No hay atenciones con estos filtros. Prueba con otro periodo.') : t('Todavía no hay atenciones registradas.')}</EmptyState>
       )}
     </div>
   )

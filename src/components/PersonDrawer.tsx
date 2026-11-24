@@ -1,5 +1,20 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Mail, Pencil, Phone, Plus, Trash2, X } from 'lucide-react'
+import { useState, type FormEvent, type ReactNode } from 'react'
+import { Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
 import { useAttendanceData } from '../hooks/useAttendanceData'
@@ -8,7 +23,9 @@ import { formatDate } from '../lib/dates'
 import { deleteSharedPerson, updateSharedPerson } from '../services/personService'
 import type { Person, PersonWithHistory } from '../types/records'
 import { capitalizeWords } from '../utils/textFormatting'
+import { FormAlert } from './FormAlert'
 import { HistoryList } from './HistoryList'
+import { PersonAvatar } from './PersonAvatar'
 
 interface PersonDrawerProps {
   personId: string
@@ -28,20 +45,10 @@ export function PersonDrawer({ personId, onClose, onRegister }: PersonDrawerProp
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const closeButton = useRef<HTMLButtonElement>(null)
 
   const workspaceId = access.status === 'active' ? access.membership.workspace_id : undefined
   const isAdmin = access.status === 'active' && access.membership.role === 'admin'
   const canEdit = Boolean(person && (isAdmin || person.createdBy === user?.id))
-
-  useEffect(() => {
-    closeButton.current?.focus()
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
 
   if (!person) return null
 
@@ -71,86 +78,104 @@ export function PersonDrawer({ personId, onClose, onRegister }: PersonDrawerProp
     try {
       await deleteSharedPerson(workspaceId, person.id)
       refresh()
+      setConfirmDelete(false)
       onClose()
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo eliminar la persona.')
+      setConfirmDelete(false)
       setBusy(false)
     }
   }
 
+  const facts: { label: string; value: ReactNode }[] = [
+    { label: t('Teléfono'), value: person.phone ? <a className="inline-flex items-center gap-1.5 hover:underline" href={`tel:${person.phone.replace(/[^\d+]/g, '')}`}><Phone className="size-3.5" aria-hidden="true" />{person.phone}</a> : '—' },
+    { label: t('Correo'), value: person.email ? <a className="inline-flex items-center gap-1.5 break-all hover:underline" href={`mailto:${person.email}`}><Mail className="size-3.5 shrink-0" aria-hidden="true" />{person.email}</a> : '—' },
+    { label: t('Atenciones'), value: person.appointments.length },
+    { label: t('Primera visita'), value: first ? formatDate(first.date, locale) : '—' },
+    { label: t('Última visita'), value: last ? formatDate(last.date, locale) : '—' },
+  ]
+
   return (
-    <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }} role="presentation">
-      <aside aria-labelledby="person-drawer-title" aria-modal="true" className="drawer" role="dialog">
-        <div className="drawer__head">
-          <span className="avatar avatar--large" aria-hidden="true">{person.name.slice(0, 1).toLocaleUpperCase()}</span>
-          <div>
-            <h2 id="person-drawer-title">{person.name}</h2>
-            <p>{person.nationality}</p>
+    <Sheet onOpenChange={(open) => { if (!open) onClose() }} open>
+      <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-md" closeLabel={t('Cerrar')}>
+        <SheetHeader className="flex-row items-center gap-3 border-b pr-12">
+          <PersonAvatar className="size-12 text-base" name={person.name} />
+          <div className="min-w-0">
+            <SheetTitle className="truncate text-lg">{person.name}</SheetTitle>
+            <SheetDescription>{person.nationality}</SheetDescription>
           </div>
-          <button aria-label={t('Cerrar')} className="icon-button" onClick={onClose} ref={closeButton} type="button"><X size={18} /></button>
-        </div>
+        </SheetHeader>
 
         {editing ? (
-          <form className="drawer__section form-stack" onSubmit={(event) => void save(event)}>
-            <h3>{t('Editar datos')}</h3>
-            <label className="field"><span>{t('Nombre completo')}</span><input autoCapitalize="words" maxLength={120} onChange={(event) => setEditing({ ...editing, name: capitalizeWords(event.target.value) })} required value={editing.name} /></label>
-            <label className="field"><span>{t('Nacionalidad')}</span><input autoCapitalize="words" maxLength={80} onChange={(event) => setEditing({ ...editing, nationality: capitalizeWords(event.target.value) })} required value={editing.nationality} /></label>
-            <label className="field"><span>{t('Teléfono')}</span><input maxLength={40} onChange={(event) => setEditing({ ...editing, phone: event.target.value })} type="tel" value={editing.phone} /></label>
-            <label className="field"><span>{t('Correo electrónico')}</span><input maxLength={160} onChange={(event) => setEditing({ ...editing, email: event.target.value })} type="email" value={editing.email} /></label>
-            {error && <p className="message message--error" role="alert">{t(error)}</p>}
-            <div className="button-row">
-              <button className="button button--primary" disabled={busy} type="submit">{busy ? t('Guardando…') : t('Guardar cambios')}</button>
-              <button className="button button--quiet" disabled={busy} onClick={() => { setEditing(null); setError('') }} type="button">{t('Cancelar')}</button>
+          <form className="space-y-4 p-4" onSubmit={(event) => void save(event)}>
+            <h3 className="font-medium">{t('Editar datos')}</h3>
+            <div className="grid gap-2"><Label htmlFor="edit-name">{t('Nombre completo')}</Label><Input autoCapitalize="words" id="edit-name" maxLength={120} onChange={(event) => setEditing({ ...editing, name: capitalizeWords(event.target.value) })} required value={editing.name} /></div>
+            <div className="grid gap-2"><Label htmlFor="edit-nationality">{t('Nacionalidad')}</Label><Input autoCapitalize="words" id="edit-nationality" maxLength={80} onChange={(event) => setEditing({ ...editing, nationality: capitalizeWords(event.target.value) })} required value={editing.nationality} /></div>
+            <div className="grid gap-2"><Label htmlFor="edit-phone">{t('Teléfono')}</Label><Input id="edit-phone" maxLength={40} onChange={(event) => setEditing({ ...editing, phone: event.target.value })} type="tel" value={editing.phone} /></div>
+            <div className="grid gap-2"><Label htmlFor="edit-email">{t('Correo electrónico')}</Label><Input id="edit-email" maxLength={160} onChange={(event) => setEditing({ ...editing, email: event.target.value })} type="email" value={editing.email} /></div>
+            {error && <FormAlert>{t(error)}</FormAlert>}
+            <div className="flex gap-2">
+              <Button disabled={busy} type="submit">{busy ? t('Guardando…') : t('Guardar cambios')}</Button>
+              <Button disabled={busy} onClick={() => { setEditing(null); setError('') }} type="button" variant="ghost">{t('Cancelar')}</Button>
             </div>
           </form>
         ) : (
           <>
-            <div className="drawer__section">
-              <button className="button button--primary button--block" onClick={() => onRegister(person)} type="button">
-                <Plus size={17} aria-hidden="true" />{t('Registrar atención')}
-              </button>
-              <dl className="facts">
-                <div><dt>{t('Teléfono')}</dt><dd>{person.phone ? <a href={`tel:${person.phone.replace(/[^\d+]/g, '')}`}><Phone size={14} aria-hidden="true" />{person.phone}</a> : '—'}</dd></div>
-                <div><dt>{t('Correo')}</dt><dd>{person.email ? <a href={`mailto:${person.email}`}><Mail size={14} aria-hidden="true" />{person.email}</a> : '—'}</dd></div>
-                <div><dt>{t('Atenciones')}</dt><dd>{person.appointments.length}</dd></div>
-                <div><dt>{t('Primera visita')}</dt><dd>{first ? formatDate(first.date, locale) : '—'}</dd></div>
-                <div><dt>{t('Última visita')}</dt><dd>{last ? formatDate(last.date, locale) : '—'}</dd></div>
+            <div className="space-y-4 p-4">
+              <Button className="w-full" onClick={() => onRegister(person)} size="lg">
+                <Plus aria-hidden="true" />{t('Registrar atención')}
+              </Button>
+              <dl className="divide-y rounded-lg border text-sm">
+                {facts.map(({ label, value }) => (
+                  <div className="flex items-center justify-between gap-4 px-3 py-2" key={label}>
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="min-w-0 text-right font-medium">{value}</dd>
+                  </div>
+                ))}
               </dl>
             </div>
-            <div className="drawer__section">
-              <h3>{t('Historial')}</h3>
+            <Separator />
+            <div className="space-y-4 p-4">
+              <h3 className="font-medium">{t('Historial')}</h3>
               <HistoryList appointments={person.appointments} />
             </div>
             {(canEdit || isAdmin) && (
-              <div className="drawer__section drawer__footer">
-                {error && <p className="message message--error" role="alert">{t(error)}</p>}
-                {confirmDelete ? (
-                  <div className="confirm">
-                    <p>{t('¿Eliminar a {name} y sus {count} atenciones? No se puede deshacer.', { name: person.name, count: person.appointments.length })}</p>
-                    <div className="button-row">
-                      <button className="button button--danger" disabled={busy} onClick={() => void remove()} type="button">{busy ? t('Eliminando…') : t('Eliminar definitivamente')}</button>
-                      <button className="button button--quiet" disabled={busy} onClick={() => setConfirmDelete(false)} type="button">{t('Cancelar')}</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="button-row">
-                    {canEdit && (
-                      <button className="button button--secondary" onClick={() => { setEditing({ id: person.id, name: person.name, nationality: person.nationality, phone: person.phone, email: person.email }); setError('') }} type="button">
-                        <Pencil size={15} aria-hidden="true" />{t('Editar datos')}
-                      </button>
-                    )}
-                    {isAdmin && (
-                      <button className="button button--quiet button--danger-text" onClick={() => setConfirmDelete(true)} type="button">
-                        <Trash2 size={15} aria-hidden="true" />{t('Eliminar')}
-                      </button>
-                    )}
-                  </div>
-                )}
+              <div className="mt-auto space-y-3 border-t p-4">
+                {error && <FormAlert>{t(error)}</FormAlert>}
+                <div className="flex flex-wrap gap-2">
+                  {canEdit && (
+                    <Button onClick={() => { setEditing({ id: person.id, name: person.name, nationality: person.nationality, phone: person.phone, email: person.email }); setError('') }} variant="outline">
+                      <Pencil aria-hidden="true" />{t('Editar datos')}
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button className="text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)} variant="ghost">
+                      <Trash2 aria-hidden="true" />{t('Eliminar')}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </>
         )}
-      </aside>
-    </div>
+
+        <AlertDialog onOpenChange={(open) => { if (!busy) setConfirmDelete(open) }} open={confirmDelete}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('Eliminar')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('¿Eliminar a {name} y sus {count} atenciones? No se puede deshacer.', { name: person.name, count: person.appointments.length })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={busy}>{t('Cancelar')}</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" disabled={busy} onClick={(event) => { event.preventDefault(); void remove() }}>
+                {busy ? t('Eliminando…') : t('Eliminar definitivamente')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </SheetContent>
+    </Sheet>
   )
 }

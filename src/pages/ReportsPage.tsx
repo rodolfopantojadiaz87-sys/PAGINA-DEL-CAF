@@ -1,10 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { FileText, Share2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '../auth/useAuth'
 import { BarList } from '../components/BarList'
 import { FilterBar } from '../components/FilterBar'
+import { FormAlert } from '../components/FormAlert'
 import { MonthChart } from '../components/MonthChart'
 import { PageHeader } from '../components/PageHeader'
+import { StatCard } from '../components/StatCard'
 import { useAttendanceData } from '../hooks/useAttendanceData'
 import { getProcessLabel, useI18n } from '../i18n'
 import {
@@ -74,83 +81,74 @@ export function ReportsPage({ filters, onFiltersChange, onNavigate }: ReportsPag
     }
   }
 
+  const figure = (value: number) => (loading ? <Skeleton className="h-9 w-12" /> : value)
+  const panel = (title: string, description: string | undefined, content: ReactNode) => (
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>{content}</CardContent>
+    </Card>
+  )
+
   return (
-    <div className="page">
+    <div className="space-y-6">
       <PageHeader
         title={t('Informes')}
         description={t('Resumen de las atenciones según el periodo y los filtros que elijas.')}
       />
-      {error && <p className="message message--error" role="alert">{t(error)}</p>}
+      {error && <FormAlert>{t(error)}</FormAlert>}
 
       <FilterBar collaborators={collaborators} filters={filters} nationalities={nationalities} onChange={onFiltersChange} />
 
-      <section className="figures" aria-label={t('Cifras del periodo')}>
-        <div className="figure figure--lead">
-          <strong>{loading ? '…' : summary.peopleCount}</strong>
-          <span>{t('personas atendidas')}</span>
-          <small>{t('Cada persona cuenta una vez, aunque venga varias veces.')}</small>
-        </div>
-        <div className="figure">
-          <strong>{loading ? '…' : summary.newPeopleCount}</strong>
-          <span>{t('vinieron por primera vez')}</span>
-        </div>
-        <div className="figure">
-          <strong>{loading ? '…' : summary.appointmentCount}</strong>
-          <span>{t('atenciones')}</span>
-          <button className="link-button" disabled={!summary.appointmentCount} onClick={() => onNavigate('attendances')} type="button">{t('Ver el listado')}</button>
-        </div>
+      <section aria-label={t('Cifras del periodo')} className="grid gap-3 sm:grid-cols-3">
+        <StatCard hint={t('Cada persona cuenta una vez, aunque venga varias veces.')} label={t('personas atendidas')} value={figure(summary.peopleCount)} />
+        <StatCard label={t('vinieron por primera vez')} value={figure(summary.newPeopleCount)} />
+        <StatCard
+          footer={<Button className="h-auto px-0" disabled={!summary.appointmentCount} onClick={() => onNavigate('attendances')} size="sm" variant="link">{t('Ver el listado')}</Button>}
+          label={t('atenciones')}
+          value={figure(summary.appointmentCount)}
+        />
       </section>
 
-      <section className="panel" aria-labelledby="months-title">
-        <div className="panel__head"><h2 id="months-title">{t('Atenciones por mes')}</h2></div>
-        <MonthChart months={summary.months} />
-      </section>
+      {panel(t('Atenciones por mes'), periodText, <MonthChart months={summary.months} />)}
 
-      <div className="panel-grid">
-        <section className="panel" aria-labelledby="processes-title">
-          <div className="panel__head">
-            <h2 id="processes-title">{t('Por proceso')}</h2>
-            <p>{t('Atenciones de cada trámite')}</p>
-          </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {panel(t('Por proceso'), t('Atenciones de cada trámite'), (
           <BarList
             color={(item) => processColor(item.label)}
             emptyText={t('No hay atenciones en este periodo.')}
             items={summary.processes}
             label={(item) => getProcessLabel(item.label, language)}
           />
-        </section>
-        <section className="panel" aria-labelledby="nationalities-title">
-          <div className="panel__head">
-            <h2 id="nationalities-title">{t('Por nacionalidad')}</h2>
-            <p>{t('Personas distintas de cada país')}</p>
-          </div>
+        ))}
+        {panel(t('Por nacionalidad'), t('Personas distintas de cada país'), (
           <BarList emptyText={t('No hay atenciones en este periodo.')} items={summary.nationalities} limit={10} otherLabel={t('Otras')} />
-        </section>
+        ))}
       </div>
 
-      <section className="panel" aria-labelledby="team-title">
-        <div className="panel__head">
-          <h2 id="team-title">{t('Por colaborador')}</h2>
-          <p>{t('Quién registró las atenciones')}</p>
-        </div>
-        <BarList color={() => 'var(--ink-soft)'} emptyText={t('No hay atenciones en este periodo.')} items={summary.collaborators} />
-      </section>
+      {panel(t('Por colaborador'), t('Quién registró las atenciones'), (
+        <BarList color={() => 'var(--muted-foreground)'} emptyText={t('No hay atenciones en este periodo.')} items={summary.collaborators} />
+      ))}
 
-      <section className="export" aria-labelledby="export-title">
-        <div>
-          <h2 id="export-title">{t('Descargar informe en PDF')}</h2>
-          <p>{t('Incluye el periodo, los filtros aplicados, las cifras y los gráficos de esta página.')}</p>
-          <label className="checkbox">
-            <input checked={includeDetail} onChange={(event) => setIncludeDetail(event.target.checked)} type="checkbox" />
-            <span>{t('Añadir el listado de las {count} atenciones', { count: summary.appointmentCount })}</span>
-          </label>
-        </div>
-        <div className="button-row">
-          <button className="button button--primary" disabled={busy || loading} onClick={() => void run('download')} type="button"><FileText size={16} aria-hidden="true" />{busy ? t('Generando…') : t('Descargar PDF')}</button>
-          <button className="button button--secondary" disabled={busy || loading} onClick={() => void run('share')} type="button"><Share2 size={16} aria-hidden="true" />{t('Compartir')}</button>
-        </div>
-        {message && <p className={`message message--${message.kind}`} role={message.kind === 'error' ? 'alert' : 'status'}>{t(message.text)}</p>}
-      </section>
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle>{t('Descargar informe en PDF')}</CardTitle>
+          <CardDescription>{t('Incluye el periodo, los filtros aplicados, las cifras y los gráficos de esta página.')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Checkbox checked={includeDetail} id="include-detail" onCheckedChange={(checked) => setIncludeDetail(checked === true)} />
+            <Label className="font-normal" htmlFor="include-detail">{t('Añadir el listado de las {count} atenciones', { count: summary.appointmentCount })}</Label>
+          </div>
+          {message && <FormAlert kind={message.kind}>{t(message.text)}</FormAlert>}
+        </CardContent>
+        <CardFooter className="flex flex-wrap gap-2 border-t">
+          <Button disabled={busy || loading} onClick={() => void run('download')}><FileText aria-hidden="true" />{busy ? t('Generando…') : t('Descargar PDF')}</Button>
+          <Button disabled={busy || loading} onClick={() => void run('share')} variant="outline"><Share2 aria-hidden="true" />{t('Compartir')}</Button>
+        </CardFooter>
+      </Card>
     </div>
   )
 }

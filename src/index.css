@@ -1,97 +1,88 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
 /*
- * Sistema visual de Novo Norte.
- * Azul marino de la marca para estructura y acciones; fondo frío y claro;
- * el único código de color adicional es el de cada proceso (src/lib/processes.ts).
+ * Tema shadcn/ui (new-york, base neutral). El primario es el azul marino de
+ * Novo Norte; el único código de color adicional es el de cada proceso
+ * (src/lib/processes.ts).
  */
 :root {
-  --navy: #1b2f6b;
-  --navy-deep: #132352;
-  --navy-hover: #24398a;
-  --navy-soft: #e9eef9;
-  --sun: #f5c242;
-  --ink: #182038;
-  --ink-soft: #4a5472;
-  --muted: #677190;
-  --paper: #f5f7fb;
-  --surface: #ffffff;
-  --line: #dce2ee;
-  --line-strong: #c3cce0;
-  --danger: #b42318;
-  --danger-soft: #fdeeec;
-  --success: #11734b;
-  --success-soft: #e7f5ee;
-  --warning: #7a5600;
-  --warning-soft: #fff5d9;
-
-  --font-display: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
-  --font-body: 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --shadow-float: 0 12px 32px rgba(19, 35, 82, 0.16);
-
-  font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--ink);
-  background: var(--paper);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-variant-numeric: tabular-nums;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.33 0.11 266);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+@theme inline {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
 }
 
-body {
-  min-width: 320px;
-  min-height: 100vh;
-  margin: 0;
-  background: var(--paper);
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    min-width: 320px;
+    font-variant-numeric: tabular-nums;
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-}
-
-a {
-  color: var(--navy);
-}
-
-h1,
-h2,
-h3 {
-  margin: 0;
-  font-family: var(--font-display);
-  color: var(--ink);
-  line-height: 1.2;
-}
-
-p {
-  margin: 0;
-}
-
-:focus-visible {
-  outline: 3px solid var(--navy);
-  outline-offset: 2px;
+@utility sr-only-focusable {
+  @apply sr-only focus:not-sr-only;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -100,6 +91,5 @@ p {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }

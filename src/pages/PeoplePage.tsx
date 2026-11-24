@@ -1,6 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Download, Plus, Search, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { EmptyState } from '../components/EmptyState'
+import { FormAlert } from '../components/FormAlert'
 import { PageHeader } from '../components/PageHeader'
+import { PersonAvatar } from '../components/PersonAvatar'
+import { SelectField } from '../components/SelectField'
 import { useAttendanceData } from '../hooks/useAttendanceData'
 import { getLocale, getProcessLabel, useI18n } from '../i18n'
 import { downloadCsv } from '../lib/csv'
@@ -71,129 +81,125 @@ export function PeoplePage({ onOpenPerson, onRegister }: PeoplePageProps) {
   }
 
   return (
-    <div className="page">
+    <div className="space-y-6">
       <PageHeader
         title={t('Personas')}
         description={loading ? t('Cargando…') : t('{count} personas registradas', { count: people.length })}
         actions={
           <>
-            <button className="button button--secondary" disabled={!filtered.length} onClick={exportCsv} type="button"><Download size={16} aria-hidden="true" />{t('Exportar CSV')}</button>
-            <button className="button button--primary" onClick={() => onRegister({})} type="button"><Plus size={16} aria-hidden="true" />{t('Persona nueva')}</button>
+            <Button disabled={!filtered.length} onClick={exportCsv} variant="outline"><Download aria-hidden="true" />{t('Exportar CSV')}</Button>
+            <Button onClick={() => onRegister({})}><Plus aria-hidden="true" />{t('Persona nueva')}</Button>
           </>
         }
       />
-      {error && <p className="message message--error" role="alert">{t(error)}</p>}
+      {error && <FormAlert>{t(error)}</FormAlert>}
 
-      <div className="toolbar">
-        <label className="search-field">
-          <Search size={18} aria-hidden="true" />
-          <span className="visually-hidden">{t('Buscar')}</span>
-          <input onChange={(event) => { setQuery(event.target.value); setVisible(PAGE_SIZE) }} placeholder={t('Buscar por nombre, teléfono o correo')} type="search" value={query} />
-        </label>
-        <label className="field field--compact">
-          <span>{t('Nacionalidad')}</span>
-          <select onChange={(event) => { setNationality(event.target.value); setVisible(PAGE_SIZE) }} value={nationality}>
-            <option value="">{t('Todas')}</option>
-            {nationalities.map((value) => <option key={value} value={value}>{value}</option>)}
-          </select>
-        </label>
-        <label className="field field--compact">
-          <span>{t('Algún trámite de')}</span>
-          <select onChange={(event) => { setProcess(event.target.value); setVisible(PAGE_SIZE) }} value={process}>
-            <option value="">{t('Cualquier proceso')}</option>
-            {PROCESS_OPTIONS.map((item) => <option key={item} value={item}>{getProcessLabel(item, language)}</option>)}
-          </select>
-        </label>
-        <label className="field field--compact">
-          <span>{t('Con atención desde')}</span>
-          <input max={to || undefined} onChange={(event) => { setFrom(event.target.value); setVisible(PAGE_SIZE) }} type="date" value={from} />
-        </label>
-        <label className="field field--compact">
-          <span>{t('Hasta')}</span>
-          <input min={from || undefined} onChange={(event) => { setTo(event.target.value); setVisible(PAGE_SIZE) }} type="date" value={to} />
-        </label>
-        <label className="field field--compact">
-          <span>{t('Ordenar por')}</span>
-          <select disabled={Boolean(query.trim())} onChange={(event) => setSort(event.target.value as SortOrder)} value={sort}>
-            <option value="recent">{t('Visita más reciente')}</option>
-            <option value="name">{t('Nombre')}</option>
-            <option value="visits">{t('Más atenciones')}</option>
-          </select>
-        </label>
-      </div>
+      <Card className="gap-4 p-4 shadow-none">
+        <div className="relative">
+          <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input aria-label={t('Buscar')} className="pl-9" onChange={(event) => { setQuery(event.target.value); setVisible(PAGE_SIZE) }} placeholder={t('Buscar por nombre, teléfono o correo')} type="search" value={query} />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <SelectField allLabel={t('Todas')} label={t('Nacionalidad')} onChange={(value) => { setNationality(value); setVisible(PAGE_SIZE) }} options={nationalities.map((value) => ({ value, label: value }))} value={nationality} />
+          <SelectField allLabel={t('Cualquier proceso')} label={t('Algún trámite de')} onChange={(value) => { setProcess(value); setVisible(PAGE_SIZE) }} options={PROCESS_OPTIONS.map((item) => ({ value: item, label: getProcessLabel(item, language) }))} value={process} />
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground" htmlFor="people-from">{t('Con atención desde')}</Label>
+            <Input id="people-from" max={to || undefined} onChange={(event) => { setFrom(event.target.value); setVisible(PAGE_SIZE) }} type="date" value={from} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground" htmlFor="people-to">{t('Hasta')}</Label>
+            <Input id="people-to" min={from || undefined} onChange={(event) => { setTo(event.target.value); setVisible(PAGE_SIZE) }} type="date" value={to} />
+          </div>
+          <SelectField
+            disabled={Boolean(query.trim())}
+            label={t('Ordenar por')}
+            onChange={(value) => setSort(value as SortOrder)}
+            options={[
+              { value: 'recent', label: t('Visita más reciente') },
+              { value: 'name', label: t('Nombre') },
+              { value: 'visits', label: t('Más atenciones') },
+            ]}
+            value={sort}
+          />
+        </div>
+      </Card>
 
-      <div className="result-line">
+      <div className="flex min-h-8 items-center justify-between gap-2 text-sm text-muted-foreground">
         <span>{t(filtered.length === 1 ? '{count} persona' : '{count} personas', { count: filtered.length })}</span>
         {hasFilters && (
-          <button className="link-button" onClick={() => { setQuery(''); setNationality(''); setProcess(''); setFrom(''); setTo('') }} type="button">
-            <X size={14} aria-hidden="true" />{t('Quitar filtros')}
-          </button>
+          <Button onClick={() => { setQuery(''); setNationality(''); setProcess(''); setFrom(''); setTo('') }} size="sm" variant="ghost">
+            <X aria-hidden="true" />{t('Quitar filtros')}
+          </Button>
         )}
       </div>
 
       {loading ? (
-        <p className="muted">{t('Cargando…')}</p>
+        <div className="space-y-2">{[0, 1, 2, 3].map((key) => <Skeleton className="h-14 w-full" key={key} />)}</div>
       ) : filtered.length ? (
         <>
-          <table className="data-table data-table--people">
-            <thead>
-              <tr>
-                <th scope="col">{t('Persona')}</th>
-                <th scope="col">{t('Contacto')}</th>
-                <th scope="col">{t('Última visita')}</th>
-                <th className="data-table__number" scope="col">{t('Atenciones')}</th>
-                <th scope="col"><span className="visually-hidden">{t('Acciones')}</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.slice(0, visible).map((person) => (
-                <tr key={person.id}>
-                  <td>
-                    <button className="row-link" onClick={() => onOpenPerson(String(person.id))} type="button">
-                      <span className="avatar" aria-hidden="true">{person.name.slice(0, 1).toLocaleUpperCase()}</span>
-                      <span><strong>{person.name}</strong><small>{person.nationality}</small></span>
-                    </button>
-                  </td>
-                  <td className="data-table__contact">
-                    {person.phone && <span>{person.phone}</span>}
-                    {person.email && <span>{person.email}</span>}
-                    {!person.phone && !person.email && <span className="muted">—</span>}
-                  </td>
-                  <td data-label={t('Última visita')}>{person.lastAppointment ? relativeDay(person.lastAppointment.date, locale, t) : '—'}</td>
-                  <td className="data-table__number" data-label={t('Atenciones')}>{person.appointments.length}</td>
-                  <td className="data-table__action">
-                    <button className="button button--secondary button--small" onClick={() => onRegister({ person })} type="button">
-                      <Plus size={14} aria-hidden="true" />{t('Atención')}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Card className="gap-0 overflow-hidden py-0 shadow-none">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="pl-4">{t('Persona')}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t('Contacto')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t('Última visita')}</TableHead>
+                  <TableHead className="hidden text-right sm:table-cell">{t('Atenciones')}</TableHead>
+                  <TableHead className="pr-4"><span className="sr-only">{t('Acciones')}</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.slice(0, visible).map((person) => (
+                  <TableRow key={person.id}>
+                    <TableCell className="pl-4">
+                      <button className="flex items-center gap-3 text-left" onClick={() => onOpenPerson(String(person.id))} type="button">
+                        <PersonAvatar name={person.name} />
+                        <span className="min-w-0">
+                          <span className="block font-medium hover:underline">{person.name}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {person.nationality}
+                            <span className="sm:hidden">{person.lastAppointment ? ` · ${relativeDay(person.lastAppointment.date, locale, t)}` : ''}</span>
+                          </span>
+                        </span>
+                      </button>
+                    </TableCell>
+                    <TableCell className="hidden text-sm text-muted-foreground md:table-cell">
+                      {person.phone && <span className="block">{person.phone}</span>}
+                      {person.email && <span className="block">{person.email}</span>}
+                      {!person.phone && !person.email && '—'}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">{person.lastAppointment ? relativeDay(person.lastAppointment.date, locale, t) : '—'}</TableCell>
+                    <TableCell className="hidden text-right tabular-nums sm:table-cell">{person.appointments.length}</TableCell>
+                    <TableCell className="pr-4 text-right">
+                      <Button aria-label={t('Registrar atención')} onClick={() => onRegister({ person })} size="sm" variant="outline">
+                        <Plus aria-hidden="true" /><span className="hidden sm:inline">{t('Atención')}</span>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
           {visible < filtered.length && (
-            <button className="button button--quiet button--block" onClick={() => setVisible((count) => count + PAGE_SIZE)} type="button">
+            <Button className="w-full" onClick={() => setVisible((count) => count + PAGE_SIZE)} variant="outline">
               {t('Mostrar {count} más', { count: Math.min(PAGE_SIZE, filtered.length - visible) })}
-            </button>
+            </Button>
           )}
         </>
+      ) : people.length ? (
+        <EmptyState
+          action={query.trim() ? (
+            <Button onClick={() => onRegister({ name: query.trim() })}>
+              <Plus aria-hidden="true" />{t('Registrar a «{name}» como persona nueva', { name: query.trim() })}
+            </Button>
+          ) : undefined}
+        >
+          {t('Nadie coincide con la búsqueda o los filtros.')}
+        </EmptyState>
       ) : (
-        <div className="empty">
-          {people.length ? (
-            <>
-              <p>{t('Nadie coincide con la búsqueda o los filtros.')}</p>
-              {query.trim() && (
-                <button className="button button--primary" onClick={() => onRegister({ name: query.trim() })} type="button">
-                  <Plus size={16} aria-hidden="true" />{t('Registrar a «{name}» como persona nueva', { name: query.trim() })}
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <p>{t('Todavía no hay personas. Aparecen aquí al registrar su primera atención.')}</p>
-              <button className="button button--primary" onClick={() => onRegister({})} type="button"><Plus size={16} aria-hidden="true" />{t('Registrar atención')}</button>
-            </>
-          )}
-        </div>
+        <EmptyState action={<Button onClick={() => onRegister({})}><Plus aria-hidden="true" />{t('Registrar atención')}</Button>}>
+          {t('Todavía no hay personas. Aparecen aquí al registrar su primera atención.')}
+        </EmptyState>
       )}
     </div>
   )

@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import type { CountItem } from '../statistics/aggregates'
 
 interface BarListProps {
@@ -14,7 +13,7 @@ interface BarListProps {
 
 /** Barras horizontales con etiqueta, cantidad y porcentaje: legibles en pantalla y fáciles de comparar. */
 export function BarList({ items, label, color, emptyText, limit, otherLabel = 'Otros' }: BarListProps) {
-  if (!items.length) return <p className="muted">{emptyText}</p>
+  if (!items.length) return <p className="text-sm text-muted-foreground">{emptyText}</p>
 
   let rows = items
   if (limit && items.length > limit) {
@@ -31,18 +30,22 @@ export function BarList({ items, label, color, emptyText, limit, otherLabel = 'O
   const max = Math.max(...rows.map((item) => item.count), 1)
 
   return (
-    <ul className="bar-list">
+    <ul className="space-y-3">
       {rows.map((item) => (
-        <li
-          key={item.label}
-          style={{ '--bar': `${(item.count / max) * 100}%`, '--bar-color': color?.(item) ?? 'var(--navy)' } as CSSProperties}
-        >
-          <span className="bar-list__label">{label ? label(item) : item.label}</span>
-          <span className="bar-list__value">
-            <strong>{item.count}</strong>
-            <small>{item.percentage.toFixed(1)}%</small>
-          </span>
-          <span className="bar-list__track" aria-hidden="true"><span /></span>
+        <li className="space-y-1.5" key={item.label}>
+          <div className="flex items-baseline justify-between gap-3 text-sm">
+            <span className="truncate">{label ? label(item) : item.label}</span>
+            <span className="shrink-0 tabular-nums">
+              <strong className="font-semibold">{item.count}</strong>
+              <span className="ml-2 text-xs text-muted-foreground">{item.percentage.toFixed(1)}%</span>
+            </span>
+          </div>
+          <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${(item.count / max) * 100}%`, background: color?.(item) ?? 'var(--primary)' }}
+            />
+          </div>
         </li>
       ))}
     </ul>

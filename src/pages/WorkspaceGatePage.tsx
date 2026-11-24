@@ -3,7 +3,9 @@ import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
 import { signOut } from '../services/authService'
 import { useI18n } from '../i18n'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { Button } from '@/components/ui/button'
+import { AuthLayout } from '../components/AuthLayout'
+import { FormAlert } from '../components/FormAlert'
 
 /** Para cuentas que iniciaron sesión pero no tienen acceso activo al espacio. */
 export function WorkspaceGatePage() {
@@ -27,33 +29,22 @@ export function WorkspaceGatePage() {
   }
 
   return (
-    <div className="auth">
-      <aside className="auth__brand">
-        <img alt="" height="88" src="/icons/icon-512.png" width="88" />
-        <p className="auth__name">Novo Norte</p>
-        <p className="auth__tagline">{t('Registro de atenciones')}</p>
-      </aside>
-      <main className="auth__main">
-        <div className="auth__language"><LanguageSwitcher /></div>
-        <section className="auth__card">
-          <h1>{connectionProblem ? t('No pudimos comprobar tu acceso') : t('Todavía no tienes acceso')}</h1>
-          <p className="auth__lead">
-            {connectionProblem
-              ? t('Revisa tu conexión a internet e inténtalo de nuevo.')
-              : t('Pide a un administrador que habilite tu cuenta. Cuando lo haga, pulsa el botón de abajo.')}
-          </p>
-          {user?.email && <p className="auth__note">{t('Cuenta: {email}', { email: user.email })}</p>}
-          {signOutError && <p className="message message--error" role="alert">{t(signOutError)}</p>}
-          <div className="form-stack">
-            <button className="button button--primary button--large" onClick={refresh} type="button">
-              {connectionProblem ? t('Reintentar') : t('Ya me dieron acceso')}
-            </button>
-            <button className="link-button" disabled={busy} onClick={() => void handleSignOut()} type="button">
-              {busy ? t('Cerrando sesión…') : t('Entrar con otra cuenta')}
-            </button>
-          </div>
-        </section>
-      </main>
-    </div>
+    <AuthLayout
+      description={connectionProblem
+        ? t('Revisa tu conexión a internet e inténtalo de nuevo.')
+        : t('Pide a un administrador que habilite tu cuenta. Cuando lo haga, pulsa el botón de abajo.')}
+      title={connectionProblem ? t('No pudimos comprobar tu acceso') : t('Todavía no tienes acceso')}
+    >
+      <div className="space-y-4">
+        {user?.email && <p className="text-sm text-muted-foreground">{t('Cuenta: {email}', { email: user.email })}</p>}
+        {signOutError && <FormAlert>{t(signOutError)}</FormAlert>}
+        <Button className="w-full" onClick={refresh}>
+          {connectionProblem ? t('Reintentar') : t('Ya me dieron acceso')}
+        </Button>
+        <Button className="w-full" disabled={busy} onClick={() => void handleSignOut()} variant="ghost">
+          {busy ? t('Cerrando sesión…') : t('Entrar con otra cuenta')}
+        </Button>
+      </div>
+    </AuthLayout>
   )
 }

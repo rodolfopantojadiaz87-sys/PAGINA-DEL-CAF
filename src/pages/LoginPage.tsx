@@ -8,7 +8,11 @@ import {
 } from '../services/authService'
 import { useAuth } from '../auth/useAuth'
 import { useI18n } from '../i18n'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { AuthLayout } from '../components/AuthLayout'
+import { FormAlert } from '../components/FormAlert'
 
 type AuthMode = 'sign-in' | 'recovery' | 'update-password'
 
@@ -85,96 +89,82 @@ export function LoginPage() {
   const accessEmail = import.meta.env.VITE_ACCESS_REQUEST_EMAIL?.trim()
 
   return (
-    <div className="auth">
-      <aside className="auth__brand">
-        <img alt="" height="88" src="/icons/icon-512.png" width="88" />
-        <p className="auth__name">Novo Norte</p>
-        <p className="auth__tagline">{t('Registro de atenciones')}</p>
-      </aside>
-      <main className="auth__main">
-        <div className="auth__language"><LanguageSwitcher /></div>
-        <section className="auth__card">
-          <h1>{title}</h1>
-          <p className="auth__lead">
-            {isRecovery
-              ? t('Te enviaremos un enlace al correo de tu cuenta para crear una contraseña nueva.')
-              : isPasswordUpdate
-                ? t('Elige una contraseña de al menos 6 caracteres.')
-                : t('Entra con el correo y la contraseña que te dio la administración.')}
+    <AuthLayout
+      description={isRecovery
+        ? t('Te enviaremos un enlace al correo de tu cuenta para crear una contraseña nueva.')
+        : isPasswordUpdate
+          ? t('Elige una contraseña de al menos 6 caracteres.')
+          : t('Entra con el correo y la contraseña que te dio la administración.')}
+      title={title}
+    >
+      <div className="space-y-4">
+        {!configured && (
+          <FormAlert kind="warning">
+            {t('Supabase todavía no está configurado. Define')} <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> {t('en un archivo')} <code>.env.local</code> {t('y reinicia Vite.')}
+          </FormAlert>
+        )}
+
+        <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          {!isPasswordUpdate && (
+            <div className="grid gap-2">
+              <Label htmlFor="auth-email">{t('Correo electrónico')}</Label>
+              <Input autoComplete="email" disabled={!configured || busy} id="auth-email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
+            </div>
+          )}
+          {!isRecovery && (
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="auth-password">{t(isPasswordUpdate ? 'Contraseña nueva' : 'Contraseña')}</Label>
+                {!isPasswordUpdate && (
+                  <Button className="h-auto px-0 text-xs" disabled={busy} onClick={() => { setMode('recovery'); setError(undefined); setNotice(undefined) }} type="button" variant="link">
+                    {t('¿Olvidaste tu contraseña?')}
+                  </Button>
+                )}
+              </div>
+              <Input autoComplete={isPasswordUpdate ? 'new-password' : 'current-password'} disabled={!configured || busy} id="auth-password" minLength={6} onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
+            </div>
+          )}
+          {isPasswordUpdate && (
+            <div className="grid gap-2">
+              <Label htmlFor="auth-confirmation">{t('Repetir contraseña nueva')}</Label>
+              <Input autoComplete="new-password" disabled={!configured || busy} id="auth-confirmation" minLength={6} onChange={(event) => setConfirmation(event.target.value)} required type="password" value={confirmation} />
+            </div>
+          )}
+          {error && <FormAlert>{t(error)}</FormAlert>}
+          {notice && <FormAlert kind="success">{t(notice)}</FormAlert>}
+          <Button className="w-full" disabled={!configured || busy} type="submit">
+            {busy
+              ? t('Procesando…')
+              : isRecovery
+                ? t('Enviar enlace')
+                : isPasswordUpdate
+                  ? t('Guardar contraseña')
+                  : t('Entrar')}
+          </Button>
+        </form>
+
+        {isRecovery && (
+          <Button className="w-full" disabled={busy} onClick={() => { setMode('sign-in'); setError(undefined); setNotice(undefined) }} variant="ghost">
+            {t('Volver a iniciar sesión')}
+          </Button>
+        )}
+        {isPasswordUpdate && (
+          <Button className="w-full" disabled={busy} onClick={() => void handleSignOut()} variant="ghost">
+            {t('Cancelar y volver al inicio de sesión')}
+          </Button>
+        )}
+        {!isRecovery && !isPasswordUpdate && (
+          <p className="text-center text-xs text-muted-foreground">
+            {t('¿No tienes cuenta? La crea un administrador del centro.')}
+            {accessEmail && (
+              <>
+                {' '}
+                <a className="underline underline-offset-4 hover:text-foreground" href={`mailto:${encodeURIComponent(accessEmail).replace(/%40/gi, '@')}?subject=${encodeURIComponent(t('Solicitud de acceso a Atenciones'))}`}>{t('Pedir acceso por correo')}</a>
+              </>
+            )}
           </p>
-
-          {!configured && (
-            <p className="message message--warning" role="alert">
-              {t('Supabase todavía no está configurado. Define')} <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> {t('en un archivo')} <code>.env.local</code> {t('y reinicia Vite.')}
-            </p>
-          )}
-
-          <form className="form-stack" onSubmit={(event) => void handleSubmit(event)}>
-            {!isPasswordUpdate && (
-              <label className="field">
-                <span>{t('Correo electrónico')}</span>
-                <input autoComplete="email" disabled={!configured || busy} onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
-              </label>
-            )}
-            {!isRecovery && (
-              <label className="field">
-                <span>{t(isPasswordUpdate ? 'Contraseña nueva' : 'Contraseña')}</span>
-                <input autoComplete={isPasswordUpdate ? 'new-password' : 'current-password'} disabled={!configured || busy} minLength={6} onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
-              </label>
-            )}
-            {isPasswordUpdate && (
-              <label className="field">
-                <span>{t('Repetir contraseña nueva')}</span>
-                <input autoComplete="new-password" disabled={!configured || busy} minLength={6} onChange={(event) => setConfirmation(event.target.value)} required type="password" value={confirmation} />
-              </label>
-            )}
-            {error && <p className="message message--error" role="alert">{t(error)}</p>}
-            {notice && <p className="message message--success" role="status">{t(notice)}</p>}
-            <button className="button button--primary button--large" disabled={!configured || busy} type="submit">
-              {busy
-                ? t('Procesando…')
-                : isRecovery
-                  ? t('Enviar enlace')
-                  : isPasswordUpdate
-                    ? t('Guardar contraseña')
-                    : t('Entrar')}
-            </button>
-          </form>
-
-          <div className="auth__links">
-            {!isPasswordUpdate && (
-              <button
-                className="link-button"
-                disabled={busy}
-                onClick={() => {
-                  setMode(isRecovery ? 'sign-in' : 'recovery')
-                  setError(undefined)
-                  setNotice(undefined)
-                }}
-                type="button"
-              >
-                {isRecovery ? t('Volver a iniciar sesión') : t('¿Olvidaste tu contraseña?')}
-              </button>
-            )}
-            {isPasswordUpdate && (
-              <button className="link-button" disabled={busy} onClick={() => void handleSignOut()} type="button">
-                {t('Cancelar y volver al inicio de sesión')}
-              </button>
-            )}
-          </div>
-          {!isRecovery && !isPasswordUpdate && (
-            <p className="auth__note">
-              {t('¿No tienes cuenta? La crea un administrador del centro.')}
-              {accessEmail && (
-                <>
-                  {' '}
-                  <a href={`mailto:${encodeURIComponent(accessEmail).replace(/%40/gi, '@')}?subject=${encodeURIComponent(t('Solicitud de acceso a Atenciones'))}`}>{t('Pedir acceso por correo')}</a>
-                </>
-              )}
-            </p>
-          )}
-        </section>
-      </main>
-    </div>
+        )}
+      </div>
+    </AuthLayout>
   )
 }

@@ -1,8 +1,28 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Eye, EyeOff, Trash2, UserPlus, X } from 'lucide-react'
+import { Eye, EyeOff, Trash2, UserPlus } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { cn } from '@/lib/utils'
 import { useAuth } from '../auth/useAuth'
 import { useWorkspace } from '../auth/useWorkspace'
+import { FormAlert } from '../components/FormAlert'
 import { PageHeader } from '../components/PageHeader'
+import { PersonAvatar } from '../components/PersonAvatar'
+import { SelectField } from '../components/SelectField'
 import { useI18n } from '../i18n'
 import {
   createWorkspaceUser,
@@ -122,113 +142,138 @@ export function SettingsPage() {
   const removingMember = memberToRemove !== null && updatingMemberId === memberToRemove.id
 
   return (
-    <div className="page">
+    <div className="space-y-6">
       <PageHeader title={t('Miembros')} description={t('Quién puede entrar al sistema y qué puede hacer.')} />
 
-      <div className="members-layout">
-        <section className="panel" aria-labelledby="create-member-title">
-          <div className="panel__head"><h2 id="create-member-title">{t('Crear miembro')}</h2></div>
-          <form className="form-stack" onSubmit={(event) => void handleCreateMember(event)}>
-            <label className="field">
-              <span>{t('Nombre y apellido')}</span>
-              <input autoCapitalize="words" autoComplete="off" disabled={createBusy} maxLength={120} onChange={(event) => setNewMemberName(capitalizeWords(event.target.value))} required type="text" value={newMemberName} />
-            </label>
-            <label className="field">
-              <span>{t('Correo electrónico')}</span>
-              <input autoComplete="off" disabled={createBusy} onChange={(event) => { setNewMemberEmail(event.target.value); setNotice('') }} placeholder={t('nombre@ejemplo.com')} required type="email" value={newMemberEmail} />
-            </label>
-            <label className="field">
-              <span>{t('Contraseña')}</span>
-              <span className="password-field">
-                <input autoComplete="new-password" disabled={createBusy} minLength={6} onChange={(event) => setNewMemberPassword(event.target.value)} required type={showPassword ? 'text' : 'password'} value={newMemberPassword} />
-                <button aria-label={t(showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña')} className="icon-button" disabled={createBusy} onClick={() => setShowPassword((visible) => !visible)} type="button">
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </span>
-              <small>{t('Mínimo 6 caracteres. Compártela con la persona por un canal seguro: no se vuelve a mostrar.')}</small>
-            </label>
-            <fieldset className="role-picker">
-              <legend>{t('Rol')}</legend>
-              <label className="role-option">
-                <input checked={newMemberRole === 'attendant'} disabled={createBusy} name="role" onChange={() => setNewMemberRole('attendant')} type="radio" />
-                <span><strong>{t('Colaborador')}</strong><small>{t('Registra atenciones y consulta personas e informes.')}</small></span>
-              </label>
-              <label className="role-option">
-                <input checked={newMemberRole === 'admin'} disabled={createBusy} name="role" onChange={() => setNewMemberRole('admin')} type="radio" />
-                <span><strong>{t('Administrador')}</strong><small>{t('Además edita cualquier dato, elimina personas y gestiona miembros.')}</small></span>
-              </label>
-            </fieldset>
-            {createError && <p className="message message--error" role="alert">{t(createError)}</p>}
-            <button className="button button--primary" disabled={createBusy} type="submit">
-              <UserPlus size={16} aria-hidden="true" />{createBusy ? t('Creando miembro…') : t('Crear miembro')}
-            </button>
-          </form>
-        </section>
+      <div className="grid items-start gap-6 lg:grid-cols-[22rem_1fr]">
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle>{t('Crear miembro')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={(event) => void handleCreateMember(event)}>
+              <div className="grid gap-2">
+                <Label htmlFor="member-name">{t('Nombre y apellido')}</Label>
+                <Input autoCapitalize="words" autoComplete="off" disabled={createBusy} id="member-name" maxLength={120} onChange={(event) => setNewMemberName(capitalizeWords(event.target.value))} required type="text" value={newMemberName} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="member-email">{t('Correo electrónico')}</Label>
+                <Input autoComplete="off" disabled={createBusy} id="member-email" onChange={(event) => { setNewMemberEmail(event.target.value); setNotice('') }} placeholder={t('nombre@ejemplo.com')} required type="email" value={newMemberEmail} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="member-password">{t('Contraseña')}</Label>
+                <div className="relative">
+                  <Input autoComplete="new-password" className="pr-10" disabled={createBusy} id="member-password" minLength={6} onChange={(event) => setNewMemberPassword(event.target.value)} required type={showPassword ? 'text' : 'password'} value={newMemberPassword} />
+                  <Button aria-label={t(showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña')} className="absolute top-0 right-0 text-muted-foreground" disabled={createBusy} onClick={() => setShowPassword((visible) => !visible)} size="icon" type="button" variant="ghost">
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">{t('Mínimo 6 caracteres. Compártela con la persona por un canal seguro: no se vuelve a mostrar.')}</p>
+              </div>
+              <div className="grid gap-2">
+                <Label>{t('Rol')}</Label>
+                <RadioGroup aria-label={t('Rol')} disabled={createBusy} onValueChange={(value) => setNewMemberRole(value === 'admin' ? 'admin' : 'attendant')} value={newMemberRole}>
+                  {([
+                    ['attendant', 'Colaborador', 'Registra atenciones y consulta personas e informes.'],
+                    ['admin', 'Administrador', 'Además edita cualquier dato, elimina personas y gestiona miembros.'],
+                  ] as const).map(([value, title, description]) => (
+                    <Label
+                      className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 font-normal has-data-[state=checked]:border-primary has-data-[state=checked]:bg-primary/5"
+                      htmlFor={`role-${value}`}
+                      key={value}
+                    >
+                      <RadioGroupItem className="mt-0.5" id={`role-${value}`} value={value} />
+                      <span className="grid gap-1">
+                        <span className="font-medium">{t(title)}</span>
+                        <span className="text-xs leading-snug text-muted-foreground">{t(description)}</span>
+                      </span>
+                    </Label>
+                  ))}
+                </RadioGroup>
+              </div>
+              {createError && <FormAlert>{t(createError)}</FormAlert>}
+              <Button className="w-full" disabled={createBusy} type="submit">
+                <UserPlus aria-hidden="true" />{createBusy ? t('Creando miembro…') : t('Crear miembro')}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-        <section className="panel" aria-labelledby="members-title">
-          <div className="panel__head">
-            <h2 id="members-title">{t('Equipo')}</h2>
-            <p>{membersLoaded ? t('{count} miembros', { count: members.length }) : t('Cargando…')}</p>
-          </div>
-          {notice && <p className="message message--success" role="status">{notice}</p>}
-          {membersError && !memberToRemove && <p className="message message--error" role="alert">{t(membersError)}</p>}
-          <ul className="member-list">
-            {members.map((member) => {
-              const isSelf = member.user_id === user?.id
-              const protectedMember = member.is_owner || isSelf
-              const busy = updatingMemberId === member.id
-              return (
-                <li className={member.is_active ? 'member' : 'member member--inactive'} key={member.id}>
-                  <span className="avatar" aria-hidden="true">{member.full_name.slice(0, 1).toLocaleUpperCase()}</span>
-                  <div className="member__identity">
-                    <strong>{member.full_name}{isSelf && <em>{t('(tú)')}</em>}</strong>
-                    <small>{member.email ?? t('Correo no disponible')}</small>
-                    {!member.is_active && <span className="badge">{t('Desactivado')}</span>}
-                    {member.is_owner && <span className="badge badge--owner">{t('Propietario')}</span>}
-                  </div>
-                  <div className="member__controls">
-                    <select aria-label={t('Rol de {name}', { name: member.full_name })} disabled={protectedMember || busy} onChange={(event) => void changeMember(member, { role: event.target.value === 'admin' ? 'admin' : 'attendant' })} value={member.role}>
-                      <option value="attendant">{t('Colaborador')}</option>
-                      <option value="admin">{t('Administrador')}</option>
-                    </select>
-                    {!protectedMember && (
-                      <>
-                        <button className="button button--quiet button--small" disabled={busy} onClick={() => void changeMember(member, { is_active: !member.is_active })} type="button">
-                          {busy ? t('Guardando…') : member.is_active ? t('Desactivar') : t('Reactivar')}
-                        </button>
-                        <button aria-label={t('Quitar a {name} del espacio', { name: member.full_name })} className="icon-button icon-button--danger" disabled={busy} onClick={() => { setMembersError(''); setMemberToRemove(member) }} title={t('Quitar del espacio')} type="button">
-                          <Trash2 size={16} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
+        <Card className="gap-0 shadow-none">
+          <CardHeader className="border-b">
+            <CardTitle>{t('Equipo')}</CardTitle>
+            <CardDescription>{membersLoaded ? t('{count} miembros', { count: members.length }) : t('Cargando…')}</CardDescription>
+          </CardHeader>
+          <CardContent className="px-0">
+            {(notice || (membersError && !memberToRemove)) && (
+              <div className="space-y-2 px-6 pt-4">
+                {notice && <FormAlert kind="success">{notice}</FormAlert>}
+                {membersError && !memberToRemove && <FormAlert>{t(membersError)}</FormAlert>}
+              </div>
+            )}
+            <ul className="divide-y">
+              {members.map((member) => {
+                const isSelf = member.user_id === user?.id
+                const protectedMember = member.is_owner || isSelf
+                const busy = updatingMemberId === member.id
+                return (
+                  <li className={cn('flex flex-wrap items-center gap-3 px-6 py-4', !member.is_active && 'opacity-60')} key={member.id}>
+                    <PersonAvatar name={member.full_name} />
+                    <div className="min-w-0 flex-1">
+                      <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                        {member.full_name}
+                        {isSelf && <span className="font-normal text-muted-foreground">{t('(tú)')}</span>}
+                        {member.is_owner && <Badge variant="secondary">{t('Propietario')}</Badge>}
+                        {!member.is_active && <Badge variant="outline">{t('Desactivado')}</Badge>}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{member.email ?? t('Correo no disponible')}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <SelectField
+                        className="w-40"
+                        disabled={protectedMember || busy}
+                        hideLabel
+                        label={t('Rol de {name}', { name: member.full_name })}
+                        onChange={(value) => void changeMember(member, { role: value === 'admin' ? 'admin' : 'attendant' })}
+                        options={[{ value: 'attendant', label: t('Colaborador') }, { value: 'admin', label: t('Administrador') }]}
+                        value={member.role}
+                      />
+                      {!protectedMember && (
+                        <>
+                          <Button disabled={busy} onClick={() => void changeMember(member, { is_active: !member.is_active })} size="sm" variant="ghost">
+                            {busy ? t('Guardando…') : member.is_active ? t('Desactivar') : t('Reactivar')}
+                          </Button>
+                          <Button aria-label={t('Quitar a {name} del espacio', { name: member.full_name })} className="text-muted-foreground hover:text-destructive" disabled={busy} onClick={() => { setMembersError(''); setMemberToRemove(member) }} size="icon" title={t('Quitar del espacio')} variant="ghost">
+                            <Trash2 />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </CardContent>
+        </Card>
       </div>
 
-      {memberToRemove && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !removingMember) setMemberToRemove(null) }} role="presentation">
-          <section aria-describedby="remove-member-description" aria-labelledby="remove-member-title" aria-modal="true" className="modal" onKeyDown={(event) => { if (event.key === 'Escape' && !removingMember) setMemberToRemove(null) }} role="alertdialog">
-            <div className="modal__head">
-              <h2 id="remove-member-title">{t('Quitar del espacio')}</h2>
-              <button aria-label={t('Cerrar')} className="icon-button" disabled={removingMember} onClick={() => setMemberToRemove(null)} type="button"><X size={18} /></button>
-            </div>
-            <p id="remove-member-description">
-              {t('{name} dejará de tener acceso. Sus registros se conservan, y puedes volver a crearlo con el mismo correo más adelante.', { name: memberToRemove.full_name })}
-            </p>
-            {membersError && <p className="message message--error" role="alert">{t(membersError)}</p>}
-            <div className="button-row">
-              <button className="button button--danger" disabled={removingMember} onClick={() => void removeMember()} type="button">
-                <Trash2 size={16} aria-hidden="true" />{removingMember ? t('Quitando…') : t('Quitar')}
-              </button>
-              <button autoFocus className="button button--quiet" disabled={removingMember} onClick={() => setMemberToRemove(null)} type="button">{t('Cancelar')}</button>
-            </div>
-          </section>
-        </div>
-      )}
+      <AlertDialog onOpenChange={(open) => { if (!open && !removingMember) setMemberToRemove(null) }} open={memberToRemove !== null}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('Quitar del espacio')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {memberToRemove && t('{name} dejará de tener acceso. Sus registros se conservan, y puedes volver a crearlo con el mismo correo más adelante.', { name: memberToRemove.full_name })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {membersError && <FormAlert>{t(membersError)}</FormAlert>}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removingMember}>{t('Cancelar')}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" disabled={removingMember} onClick={(event) => { event.preventDefault(); void removeMember() }}>
+              <Trash2 aria-hidden="true" />{removingMember ? t('Quitando…') : t('Quitar')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

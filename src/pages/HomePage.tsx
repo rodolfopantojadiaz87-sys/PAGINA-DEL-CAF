@@ -1,7 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search, UserPlus } from 'lucide-react'
+import { ChevronRight, Plus, Search, UserPlus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '../auth/useAuth'
+import { EmptyState } from '../components/EmptyState'
+import { FormAlert } from '../components/FormAlert'
+import { PersonAvatar } from '../components/PersonAvatar'
 import { ProcessTag } from '../components/ProcessTag'
+import { StatCard } from '../components/StatCard'
 import { useAttendanceData } from '../hooks/useAttendanceData'
 import { getLocale, useI18n } from '../i18n'
 import { formatDate, localDate, relativeDay } from '../lib/dates'
@@ -47,19 +55,23 @@ export function HomePage({ onNavigate, onOpenPerson, onRegister }: HomePageProps
     onRegister({ person })
   }
 
+  const figure = (value: number) => (loading ? <Skeleton className="h-9 w-12" /> : value)
+
   return (
-    <div className="page page--home">
-      <section className="reception" aria-labelledby="reception-title">
-        <p className="reception__greeting">
-          {firstName ? t('Hola, {name}', { name: firstName }) : t('Hola')}
-          <span>{formatDate(today, locale, 'long')}</span>
-        </p>
-        <h1 id="reception-title">{t('¿A quién vas a atender?')}</h1>
-        <label className="reception__search">
-          <Search size={22} aria-hidden="true" />
-          <span className="visually-hidden">{t('Buscar persona')}</span>
-          <input
+    <div className="space-y-6">
+      <section aria-labelledby="reception-title" className="space-y-4">
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">
+            {firstName ? t('Hola, {name}', { name: firstName }) : t('Hola')} · {formatDate(today, locale, 'long')}
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl" id="reception-title">{t('¿A quién vas a atender?')}</h1>
+        </div>
+        <div className="relative">
+          <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            aria-label={t('Buscar persona')}
             autoComplete="off"
+            className="h-12 bg-background pl-12 text-base shadow-sm md:text-base"
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' && matches.length === 1) registerFor(matches[0])
@@ -68,96 +80,93 @@ export function HomePage({ onNavigate, onOpenPerson, onRegister }: HomePageProps
             type="search"
             value={query}
           />
-        </label>
+        </div>
 
         {query.trim().length >= 2 && (
-          <div className="reception__results" aria-live="polite">
+          <Card aria-live="polite" className="gap-0 overflow-hidden py-0">
             {matches.length > 0 && (
-              <ul className="match-list">
+              <ul className="divide-y">
                 {matches.map((person) => (
-                  <li key={person.id}>
-                    <button className="match-list__person" onClick={() => onOpenPerson(String(person.id))} type="button">
-                      <span className="avatar" aria-hidden="true">{person.name.slice(0, 1).toLocaleUpperCase()}</span>
-                      <span>
-                        <strong>{person.name}</strong>
-                        <small>
+                  <li className="flex items-center gap-3 px-3 py-2.5 sm:px-4" key={person.id}>
+                    <button className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => onOpenPerson(String(person.id))} type="button">
+                      <PersonAvatar name={person.name} />
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">{person.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
                           {person.nationality}
                           {person.lastAppointment
                             ? `, ${t('última visita {date}', { date: relativeDay(person.lastAppointment.date, locale, t) })}`
                             : ''}
-                        </small>
+                        </span>
                       </span>
                     </button>
-                    <button className="button button--primary button--small" onClick={() => registerFor(person)} type="button">
-                      <Plus size={15} aria-hidden="true" />{t('Registrar atención')}
-                    </button>
+                    <Button onClick={() => registerFor(person)} size="sm">
+                      <Plus aria-hidden="true" /><span className="hidden sm:inline">{t('Registrar atención')}</span>
+                    </Button>
                   </li>
                 ))}
               </ul>
             )}
-            <button className="new-person" onClick={() => onRegister({ name: query.trim() })} type="button">
-              <UserPlus size={18} aria-hidden="true" />
-              <span>
-                {matches.length ? t('¿No es ninguna de estas personas?') : t('No hay nadie registrado con ese nombre.')}
-                <strong>{t('Registrar a «{name}» como persona nueva', { name: query.trim() })}</strong>
+            <button
+              className="flex w-full items-center gap-3 border-t bg-muted/50 px-3 py-3 text-left text-sm transition-colors first:border-t-0 hover:bg-muted sm:px-4"
+              onClick={() => onRegister({ name: query.trim() })}
+              type="button"
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-dashed bg-background"><UserPlus className="size-4" aria-hidden="true" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs text-muted-foreground">{matches.length ? t('¿No es ninguna de estas personas?') : t('No hay nadie registrado con ese nombre.')}</span>
+                <span className="block truncate font-medium">{t('Registrar a «{name}» como persona nueva', { name: query.trim() })}</span>
               </span>
+              <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
             </button>
-          </div>
+          </Card>
         )}
       </section>
 
-      {error && <p className="message message--error" role="alert">{t(error)}</p>}
+      {error && <FormAlert>{t(error)}</FormAlert>}
 
-      <section className="today" aria-label={t('Actividad')}>
-        <div className="figure">
-          <strong>{loading ? '…' : todayCount}</strong>
-          <span>{t(todayCount === 1 ? 'atención hoy' : 'atenciones hoy')}</span>
-        </div>
-        <div className="figure">
-          <strong>{loading ? '…' : monthSummary.appointmentCount}</strong>
-          <span>{t('atenciones este mes')}</span>
-        </div>
-        <div className="figure">
-          <strong>{loading ? '…' : monthSummary.peopleCount}</strong>
-          <span>{t('personas atendidas este mes')}</span>
-        </div>
-        <div className="figure">
-          <strong>{loading ? '…' : monthSummary.newPeopleCount}</strong>
-          <span>{t('vinieron por primera vez')}</span>
-        </div>
+      <section aria-label={t('Actividad')} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label={t(todayCount === 1 ? 'atención hoy' : 'atenciones hoy')} value={figure(todayCount)} />
+        <StatCard label={t('atenciones este mes')} value={figure(monthSummary.appointmentCount)} />
+        <StatCard label={t('personas atendidas este mes')} value={figure(monthSummary.peopleCount)} />
+        <StatCard label={t('vinieron por primera vez')} value={figure(monthSummary.newPeopleCount)} />
       </section>
 
-      <section className="panel" aria-labelledby="recent-title">
-        <div className="panel__head">
-          <h2 id="recent-title">{t('Últimas atenciones')}</h2>
-          <button className="link-button" onClick={() => onNavigate('attendances')} type="button">{t('Ver todas')}</button>
-        </div>
-        {loading ? (
-          <p className="muted">{t('Cargando…')}</p>
-        ) : recent.length ? (
-          <ul className="activity">
-            {recent.map((appointment) => {
-              const person = peopleById.get(String(appointment.personId))
-              return (
-                <li key={appointment.id}>
-                  <button className="activity__row" onClick={() => onOpenPerson(String(appointment.personId))} type="button">
-                    <span className="activity__date">{relativeDay(appointment.date, locale, t)}</span>
-                    <span className="activity__who">
-                      <strong>{person?.name ?? t('Persona eliminada')}</strong>
-                      {appointment.creatorName && <small>{t('Atendió: {name}', { name: appointment.creatorName })}</small>}
-                    </span>
-                    <ProcessTag process={appointment.process} />
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        ) : (
-          <div className="empty">
-            <p>{t('Todavía no hay atenciones. Busca o escribe el nombre de la primera persona arriba.')}</p>
-          </div>
-        )}
-      </section>
+      <Card className="gap-0 shadow-none">
+        <CardHeader className="border-b pb-4!">
+          <CardTitle>{t('Últimas atenciones')}</CardTitle>
+          <CardAction>
+            <Button onClick={() => onNavigate('attendances')} size="sm" variant="ghost">{t('Ver todas')}<ChevronRight aria-hidden="true" /></Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="px-0">
+          {loading ? (
+            <div className="space-y-3 p-6">{[0, 1, 2].map((key) => <Skeleton className="h-10 w-full" key={key} />)}</div>
+          ) : recent.length ? (
+            <ul className="divide-y">
+              {recent.map((appointment) => {
+                const person = peopleById.get(String(appointment.personId))
+                return (
+                  <li key={appointment.id}>
+                    <button className="grid w-full grid-cols-[5.5rem_1fr] items-center gap-x-3 gap-y-1 px-6 py-3 text-left transition-colors hover:bg-muted/50 sm:grid-cols-[6.5rem_1fr_auto]" onClick={() => onOpenPerson(String(appointment.personId))} type="button">
+                      <span className="text-sm text-muted-foreground">{relativeDay(appointment.date, locale, t)}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium">{person?.name ?? t('Persona eliminada')}</span>
+                        {appointment.creatorName && <span className="block truncate text-xs text-muted-foreground">{t('Atendió: {name}', { name: appointment.creatorName })}</span>}
+                      </span>
+                      <span className="col-start-2 sm:col-start-auto"><ProcessTag process={appointment.process} /></span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <div className="p-6">
+              <EmptyState>{t('Todavía no hay atenciones. Busca o escribe el nombre de la primera persona arriba.')}</EmptyState>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
