@@ -15,9 +15,11 @@ interface SelectFieldProps {
   disabled?: boolean
   className?: string
   hideLabel?: boolean
+  /** Texto que se muestra en la lista cuando no hay opciones que elegir. */
+  emptyText?: string
 }
 
-export function SelectField({ label, value, onChange, options, allLabel, disabled, className, hideLabel }: SelectFieldProps) {
+export function SelectField({ label, value, onChange, options, allLabel, disabled, className, hideLabel, emptyText }: SelectFieldProps) {
   return (
     <div className={cn('grid gap-1.5', className)}>
       <Label className={cn('text-xs text-muted-foreground', hideLabel && 'sr-only')}>{label}</Label>
@@ -31,6 +33,9 @@ export function SelectField({ label, value, onChange, options, allLabel, disable
         </SelectTrigger>
         <SelectContent align="start" position="popper">
           {allLabel && <SelectItem value={ALL}>{allLabel}</SelectItem>}
+          {!options.length && emptyText && (
+            <p className="max-w-64 px-2 py-1.5 text-xs text-muted-foreground">{emptyText}</p>
+          )}
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
           ))}

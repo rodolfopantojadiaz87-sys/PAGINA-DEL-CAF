@@ -75,6 +75,7 @@ export function FilterBar({ filters, onChange, nationalities, collaborators }: F
           </div>
           <SelectField
             allLabel={t('Todas')}
+            emptyText={t('Aparecen aquí las nacionalidades de las personas registradas.')}
             label={t('Nacionalidad')}
             onChange={(nationality) => update({ nationality })}
             options={nationalities.map((value) => ({ value, label: value }))}
@@ -82,6 +83,7 @@ export function FilterBar({ filters, onChange, nationalities, collaborators }: F
           />
           <SelectField
             allLabel={t('Todo el equipo')}
+            emptyText={t('Aparece aquí quien haya registrado alguna atención.')}
             label={t('Atendió')}
             onChange={(collaborator) => update({ collaborator })}
             options={collaborators.map(({ id, name }) => ({ value: id, label: name }))}

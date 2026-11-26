@@ -168,6 +168,8 @@ const portuguese: Record<string, string> = {
   'Informe semestral': 'Relatório semestral',
   'El PDF se descargó. Adjunta ese archivo en WhatsApp o en tu correo.': 'O PDF foi baixado. Anexe o arquivo no WhatsApp ou no e-mail.',
   'No se pudo generar el PDF.': 'Não foi possível gerar o PDF.',
+  'Aparecen aquí las nacionalidades de las personas registradas.': 'Aqui aparecem as nacionalidades das pessoas cadastradas.',
+  'Aparece aquí quien haya registrado alguna atención.': 'Aqui aparece quem registrou algum atendimento.',
   'Selecciona un período para consultar y exportar sus resultados.': 'Selecione um período para consultar e exportar os resultados.',
   'Año': 'Ano',
   'Semestre': 'Semestre',

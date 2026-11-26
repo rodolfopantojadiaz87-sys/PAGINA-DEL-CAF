@@ -100,7 +100,7 @@ export function PeoplePage({ onOpenPerson, onRegister }: PeoplePageProps) {
           <Input aria-label={t('Buscar')} className="pl-9" onChange={(event) => { setQuery(event.target.value); setVisible(PAGE_SIZE) }} placeholder={t('Buscar por nombre, teléfono o correo')} type="search" value={query} />
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <SelectField allLabel={t('Todas')} label={t('Nacionalidad')} onChange={(value) => { setNationality(value); setVisible(PAGE_SIZE) }} options={nationalities.map((value) => ({ value, label: value }))} value={nationality} />
+          <SelectField allLabel={t('Todas')} emptyText={t('Aparecen aquí las nacionalidades de las personas registradas.')} label={t('Nacionalidad')} onChange={(value) => { setNationality(value); setVisible(PAGE_SIZE) }} options={nationalities.map((value) => ({ value, label: value }))} value={nationality} />
           <SelectField allLabel={t('Cualquier proceso')} label={t('Algún trámite de')} onChange={(value) => { setProcess(value); setVisible(PAGE_SIZE) }} options={PROCESS_OPTIONS.map((item) => ({ value: item, label: getProcessLabel(item, language) }))} value={process} />
           <div className="grid gap-1.5">
             <Label className="text-xs text-muted-foreground" htmlFor="people-from">{t('Con atención desde')}</Label>
