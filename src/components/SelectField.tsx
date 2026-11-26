@@ -29,7 +29,7 @@ export function SelectField({ label, value, onChange, options, allLabel, disable
         <SelectTrigger aria-label={label} className="w-full bg-background">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent align="start" position="popper">
           {allLabel && <SelectItem value={ALL}>{allLabel}</SelectItem>}
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
